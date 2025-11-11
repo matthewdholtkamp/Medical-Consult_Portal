@@ -14,12 +14,10 @@
     <style>
         body { font-family: 'Inter', sans-serif; }
 
-        /* Hero gradient */
         .hero-bg {
             background: radial-gradient(circle at top right, #1d4ed855, #0f172a);
         }
 
-        /* Card animation */
         .card {
             transition: transform 0.25s ease, box-shadow 0.25s ease;
         }
@@ -28,7 +26,6 @@
             box-shadow: 0 12px 30px rgba(0, 0, 0, 0.28);
         }
 
-        /* Search bar */
         .search-box {
             border: 1px solid #334155;
             background: #1e293b;
@@ -43,31 +40,138 @@
 
 <body class="bg-gray-50 dark:bg-gray-900 dark:text-gray-300">
 
+
+<!-- =================================================================== -->
+<!-- WARNING MODAL (Decision Support + HIPAA Disclaimer) - FULL IDENTIFIERS -->
+<!-- Paste this block inside <body> (preferably near top) -->
+<!-- =================================================================== -->
+<div id="disclaimerModal"
+     role="dialog"
+     aria-labelledby="disclaimerTitle"
+     aria-describedby="disclaimerDesc"
+     class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-6">
+
+  <div class="bg-red-900 border border-red-600 rounded-2xl shadow-2xl max-w-2xl w-full p-6 text-left text-red-100">
+      <h2 id="disclaimerTitle" class="text-2xl font-extrabold mb-3">⚠️ Decision-Support Tool — Read Before Use</h2>
+
+      <p id="disclaimerDesc" class="text-sm mb-3">
+        This site generates consult drafts and provides clinical decision support. It does <strong>not</strong> replace your clinical judgment,
+        licensure, or medical decision-making. Use only de-identified information here.
+      </p>
+
+      <p class="text-sm mb-3 font-bold text-red-200">
+        This platform is <u>NOT HIPAA compliant</u>. Do <strong>NOT</strong> enter Protected Health Information (PHI).
+      </p>
+
+      <p class="text-sm mb-3">Do not enter any of the following 18 direct identifiers (HIPAA Safe Harbor):</p>
+
+      <ol class="list-decimal list-inside text-sm space-y-1 mb-3">
+        <li>Names (e.g., full name, initials).</li>
+        <li>All geographic subdivisions smaller than a state (street address, city, county, ZIP code).</li>
+        <li>All elements of dates (except year) directly related to an individual (birthdate, admission/discharge dates, death date); and ages >89.</li>
+        <li>Telephone numbers.</li>
+        <li>Fax numbers.</li>
+        <li>Email addresses.</li>
+        <li>Social Security numbers.</li>
+        <li>Medical record numbers.</li>
+        <li>Health plan beneficiary numbers.</li>
+        <li>Account numbers.</li>
+        <li>Certificate or license numbers.</li>
+        <li>Vehicle identifiers and serial numbers, including license plates.</li>
+        <li>Device identifiers and serial numbers.</li>
+        <li>Web URLs.</li>
+        <li>IP addresses.</li>
+        <li>Biometric identifiers (e.g., fingerprints, voiceprints).</li>
+        <li>Full-face photographs and comparable images.</li>
+        <li>Any other unique identifying number, characteristic, or code.</li>
+      </ol>
+
+      <p class="text-sm mb-3 font-semibold">Additional note — other information that may identify a person:</p>
+      <ul class="list-disc list-inside text-sm mb-4 space-y-1">
+        <li>Unique combinations of demographics or clinical details (rare diagnoses, exact time/location of a rare event) that would allow someone with local knowledge to identify the patient.</li>
+        <li>Occupation with identifiable role/location (e.g., "the hospital CEO" at a small facility), specific incident descriptions, or location/time combos that narrow identity.</li>
+        <li>Free-text notes containing household details, small-community ties, or quoted speech that could be linked to an individual.</li>
+      </ul>
+
+      <p class="text-sm mb-4 font-semibold text-red-200">
+        <strong>Actual-knowledge rule:</strong> Even if the 18 identifiers above are removed, do not enter any detail you know — from your own knowledge or context — could reasonably identify the individual.
+      </p>
+
+      <div class="flex items-center gap-3">
+        <label class="inline-flex items-center text-sm">
+          <input id="ackCheckbox" type="checkbox" class="mr-2 rounded-sm" />
+          <span>I confirm I will not enter PHI or identifiable information.</span>
+        </label>
+      </div>
+
+      <button id="ackBtn"
+              onclick="dismissModal()"
+              disabled
+              class="mt-4 w-full py-3 rounded-lg bg-red-600 hover:bg-red-500 text-white font-semibold transition opacity-50 disabled:cursor-not-allowed">
+        I Understand — Continue
+      </button>
+
+      <p class="text-xs text-red-300 mt-3">
+        By continuing you acknowledge this tool is for support only and not HIPAA compliant.
+      </p>
+  </div>
+</div>
+
+<script>
+  // enable ACK button only after checkbox checked
+  const ackCheckbox = document.getElementById('ackCheckbox');
+  const ackBtn = document.getElementById('ackBtn');
+  ackCheckbox?.addEventListener('change', () => {
+    if (ackCheckbox.checked) {
+      ackBtn.disabled = false;
+      ackBtn.classList.remove('opacity-50');
+    } else {
+      ackBtn.disabled = true;
+      ackBtn.classList.add('opacity-50');
+    }
+  });
+
+  // Dismiss modal (only via button)
+  function dismissModal() {
+    const modal = document.getElementById('disclaimerModal');
+    if (modal) modal.style.display = 'none';
+  }
+
+  // Prevent closing by click outside / ESC — keep modal blocking unless user acknowledges
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') e.preventDefault();
+  });
+  document.getElementById('disclaimerModal').addEventListener('click', (e) => {
+    // stop propagation so clicks outside don't close it; clicks inside allowed
+    if (e.target === document.getElementById('disclaimerModal')) {
+      e.stopPropagation();
+    }
+  });
+</script>
+
+
+
+<!-- =================================================================== -->
 <!-- HERO SECTION -->
+<!-- =================================================================== -->
 <header class="relative overflow-hidden rounded-b-3xl mb-12 shadow-xl">
 
-  <!-- background gradient -->
   <div class="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-gray-900 -z-10"></div>
 
-  <!-- frosted glass container -->
   <div class="relative max-w-3xl mx-auto px-6 py-12 sm:py-16 text-center rounded-3xl bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl">
 
-      <!-- headline -->
       <h1 class="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white leading-tight tracking-tight">
           AI Medical Consult & Decision-Support
       </h1>
 
-      <!-- tagline -->
       <p class="mt-4 text-base sm:text-lg text-slate-300 opacity-90 font-semibold">
           Full consult note and recommendations — fast. You make the decisions.
       </p>
 
-      <!-- attribution + legal clarity -->
       <p class="mt-3 text-xs sm:text-sm text-slate-400 opacity-80">
           Developed by Dr. Matthew Holtkamp • For educational and workflow support only
       </p>
 
-      <!-- search input -->
       <input id="search"
              type="text"
              placeholder="Search specialty…"
@@ -75,287 +179,122 @@
              onkeyup="filterCards()">
   </div>
 
-  <!-- fade at bottom -->
   <div class="pointer-events-none absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-gray-900/80 to-transparent"></div>
 </header>
 
+
+
+<!-- =================================================================== -->
 <!-- SPECIALTY GRID -->
+<!-- =================================================================== -->
 <div class="container mx-auto px-4 pb-12">
     <main id="cardContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
 
-        <!-- Keep adding class="card" and leave your links untouched -->
+
+        <!-- ✅ ALL SPECIALTY CARDS BELOW (FULL LIST INCLUDED) -->
+
         <!-- ADTMC -->
         <div class="card bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-            <h2 class="text-2xl font-semibold text-gray-900 dark:text-white">ADTMC</h2>
-            <p class="text-gray-600 dark:text-gray-400 my-4">Medic sick call services.<br><strong>Note Generation Function</strong></p>
-            <a href="ADTMC.html"
-               class="block text-center bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white font-medium py-2 px-4 rounded-md">
-                Go to Consult
-            </a>
+            <h2 class="text-2xl font-semibold">ADTMC</h2>
+            <p class="text-gray-400 my-4">Medic sick call services.<br><strong>Note Generation</strong></p>
+            <a href="ADTMC.html" class="btn bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-md block text-center">Go to Consult</a>
         </div>
 
         <!-- ADTMC+ -->
         <div class="card bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-            <h2 class="text-2xl font-semibold text-gray-900 dark:text-white">ADTMC+</h2>
-            <p class="text-gray-600 dark:text-gray-400 my-4">Advanced Sick Call for Providers.<br><strong>Note Generation Function</strong></p>
-            <a href="ADTMCplus.html"
-               class="block text-center bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-700 dark:hover:bg-indigo-600 text-white font-medium py-2 px-4 rounded-md">
-                Go to Consult
-            </a>
+            <h2 class="text-2xl font-semibold">ADTMC+</h2>
+            <p class="text-gray-400 my-4">Sick call for providers.<br><strong>Note Generation</strong></p>
+            <a href="ADTMCplus.html" class="btn bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-4 rounded-md block text-center">Go to Consult</a>
         </div>
 
-        <!-- Medical Journal Club -->
+        <!-- Journal Club -->
         <div class="card bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-            <h2 class="text-2xl font-semibold text-gray-900 dark:text-white">Medical Journal Club</h2>
-            <p class="text-gray-600 dark:text-gray-400 my-4">Latest literature summaries + audio overview.</p>
-            <a href="journalclub.html"
-               class="block text-center bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-600 text-white font-medium py-2 px-4 rounded-md">
-                Go to Consult
-            </a>
+            <h2 class="text-2xl font-semibold">Medical Journal Club</h2>
+            <p class="text-gray-400 my-4">Evidence summaries + audio.</p>
+            <a href="journalclub.html" class="btn bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-md block text-center">Go to Consult</a>
         </div>
 
-        <!-- ✅ Insert all your specialty cards below this point -->
-        
+        <!-- Full specialty list -->
         <!-- Cardiology -->
-        <div class="card bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-            <h2 class="text-2xl font-semibold text-gray-900 dark:text-white">Cardiology</h2>
-            <p class="text-gray-600 dark:text-gray-400 my-4">Consults for heart and cardiovascular system conditions.<br><strong class="mt-2 block">Note Generation Function</strong></p>
-            <a href="cardiology.html"
-               class="block text-center bg-pink-600 hover:bg-pink-700 dark:bg-pink-700 dark:hover:bg-pink-600 text-white font-medium py-2 px-4 rounded-md">
-                Go to Consult
-            </a>
-        </div>
+        <div class="card bg-white dark:bg-gray-800 rounded-lg shadow-md p-6"><h2 class="text-2xl font-semibold">Cardiology</h2><p class="text-gray-400 my-4">Consults for cardiovascular issues.<br><strong>Note Generation</strong></p><a href="cardiology.html" class="block text-center bg-pink-600 hover:bg-pink-700 text-white py-2 px-4 rounded-md">Go to Consult</a></div>
 
         <!-- Endocrinology -->
-        <div class="card bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-            <h2 class="text-2xl font-semibold text-gray-900 dark:text-white">Endocrinology</h2>
-            <p class="text-gray-600 dark:text-gray-400 my-4">Consults for hormone and metabolism disorders.<br><strong class="mt-2 block">Note Generation Function</strong></p>
-            <a href="endocrinology.html"
-               class="block text-center bg-cyan-600 hover:bg-cyan-700 dark:bg-cyan-700 dark:hover:bg-cyan-600 text-white font-medium py-2 px-4 rounded-md">
-                Go to Consult
-            </a>
-        </div>
+        <div class="card bg-white dark:bg-gray-800 rounded-lg shadow-md p-6"><h2 class="text-2xl font-semibold">Endocrinology</h2><p class="text-gray-400 my-4">Hormone/metabolism disorders.<br><strong>Note Generation</strong></p><a href="endocrinology.html" class="block text-center bg-cyan-600 hover:bg-cyan-700 text-white py-2 px-4 rounded-md">Go to Consult</a></div>
 
         <!-- ENT -->
-        <div class="card bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-            <h2 class="text-2xl font-semibold text-gray-900 dark:text-white">ENT</h2>
-            <p class="text-gray-600 dark:text-gray-400 my-4">Consults for ear, nose, and throat conditions.<br><strong class="mt-2 block">Note Generation Function</strong></p>
-            <a href="ent.html"
-               class="block text-center bg-teal-600 hover:bg-teal-700 dark:bg-teal-700 dark:hover:bg-teal-600 text-white font-medium py-2 px-4 rounded-md">
-                Go to Consult
-            </a>
-        </div>
+        <div class="card bg-white dark:bg-gray-800 rounded-lg shadow-md p-6"><h2 class="text-2xl font-semibold">ENT</h2><p class="text-gray-400 my-4">Ear, nose, throat consults.<br><strong>Note Generation</strong></p><a href="ent.html" class="block text-center bg-teal-600 hover:bg-teal-700 text-white py-2 px-4 rounded-md">Go to Consult</a></div>
 
         <!-- Gastroenterology -->
-        <div class="card bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-            <h2 class="text-2xl font-semibold text-gray-900 dark:text-white">Gastroenterology</h2>
-            <p class="text-gray-600 dark:text-gray-400 my-4">Consults for digestive system and GI tract disorders.<br><strong class="mt-2 block">Note Generation Function</strong></p>
-            <a href="gastroenterology.html"
-               class="block text-center bg-orange-600 hover:bg-orange-700 dark:bg-orange-700 dark:hover:bg-orange-600 text-white font-medium py-2 px-4 rounded-md">
-                Go to Consult
-            </a>
-        </div>
+        <div class="card bg-white dark:bg-gray-800 rounded-lg shadow-md p-6"><h2 class="text-2xl font-semibold">Gastroenterology</h2><p class="text-gray-400 my-4">GI and digestive consults.<br><strong>Note Generation</strong></p><a href="gastroenterology.html" class="block text-center bg-orange-600 hover:bg-orange-700 text-white py-2 px-4 rounded-md">Go to Consult</a></div>
 
         <!-- General Surgery -->
-        <div class="card bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-            <h2 class="text-2xl font-semibold text-gray-900 dark:text-white">General Surgery</h2>
-            <p class="text-gray-600 dark:text-gray-400 my-4">Consults for surgical procedures and conditions.<br><strong class="mt-2 block">Note Generation Function</strong></p>
-            <a href="general_surgery.html"
-               class="block text-center bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-600 text-white font-medium py-2 px-4 rounded-md">
-                Go to Consult
-            </a>
-        </div>
+        <div class="card bg-white dark:bg-gray-800 rounded-lg shadow-md p-6"><h2 class="text-2xl font-semibold">General Surgery</h2><p class="text-gray-400 my-4">Surgical evaluation consults.<br><strong>Note Generation</strong></p><a href="general_surgery.html" class="block text-center bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-md">Go to Consult</a></div>
 
         <!-- Hepatology -->
-        <div class="card bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-            <h2 class="text-2xl font-semibold text-gray-900 dark:text-white">Hepatology</h2>
-            <p class="text-gray-600 dark:text-gray-400 my-4">Consults for liver, gallbladder, and biliary tree.<br><strong class="mt-2 block">Note Generation Function</strong></p>
-            <a href="hepatology.html"
-               class="block text-center bg-yellow-600 hover:bg-yellow-700 dark:bg-yellow-700 dark:hover:bg-yellow-600 text-white font-medium py-2 px-4 rounded-md">
-                Go to Consult
-            </a>
-        </div>
+        <div class="card bg-white dark:bg-gray-800 rounded-lg shadow-md p-6"><h2 class="text-2xl font-semibold">Hepatology</h2><p class="text-gray-400 my-4">Liver and biliary system.<br><strong>Note Generation</strong></p><a href="hepatology.html" class="block text-center bg-yellow-600 hover:bg-yellow-700 text-white py-2 px-4 rounded-md">Go to Consult</a></div>
 
         <!-- Infectious Disease -->
-        <div class="card bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-            <h2 class="text-2xl font-semibold text-gray-900 dark:text-white">Infectious Disease</h2>
-            <p class="text-gray-600 dark:text-gray-400 my-4">Consults for infections, viruses, and bacteria.<br><strong class="mt-2 block">Note Generation Function</strong></p>
-            <a href="infectious_disease.html"
-               class="block text-center bg-lime-600 hover:bg-lime-700 dark:bg-lime-700 dark:hover:bg-lime-600 text-white font-medium py-2 px-4 rounded-md">
-                Go to Consult
-            </a>
-        </div>
+        <div class="card bg-white dark:bg-gray-800 rounded-lg shadow-md p-6"><h2 class="text-2xl font-semibold">Infectious Disease</h2><p class="text-gray-400 my-4">Infections and antibiotics consults.<br><strong>Note Generation</strong></p><a href="infectious_disease.html" class="block text-center bg-lime-600 hover:bg-lime-700 text-white py-2 px-4 rounded-md">Go to Consult</a></div>
 
         <!-- Nephrology -->
-        <div class="card bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-            <h2 class="text-2xl font-semibold text-gray-900 dark:text-white">Nephrology</h2>
-            <p class="text-gray-600 dark:text-gray-400 my-4">Consults for kidney function and disease.<br><strong class="mt-2 block">Note Generation Function</strong></p>
-            <a href="nephrology.html"
-               class="block text-center bg-purple-600 hover:bg-purple-700 dark:bg-purple-700 dark:hover:bg-purple-600 text-white font-medium py-2 px-4 rounded-md">
-                Go to Consult
-            </a>
-        </div>
+        <div class="card bg-white dark:bg-gray-800 rounded-lg shadow-md p-6"><h2 class="text-2xl font-semibold">Nephrology</h2><p class="text-gray-400 my-4">Kidney disease consults.<br><strong>Note Generation</strong></p><a href="nephrology.html" class="block text-center bg-purple-600 hover:bg-purple-700 text-white py-2 px-4 rounded-md">Go to Consult</a></div>
 
         <!-- Neurology -->
-        <div class="card bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-            <h2 class="text-2xl font-semibold text-gray-900 dark:text-white">Neurology</h2>
-            <p class="text-gray-600 dark:text-gray-400 my-4">Consult with specialists regarding the nervous system.<br><strong class="mt-2 block">Note Generation Function</strong></p>
-            <a href="neurology.html"
-               class="block text-center bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-md">
-                Go to Consult
-            </a>
-        </div>
+        <div class="card bg-white dark:bg-gray-800 rounded-lg shadow-md p-6"><h2 class="text-2xl font-semibold">Neurology</h2><p class="text-gray-400 my-4">Brain + CNS consults.<br><strong>Note Generation</strong></p><a href="neurology.html" class="block text-center bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md">Go to Consult</a></div>
 
         <!-- Neurosurgery -->
-        <div class="card bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-            <h2 class="text-2xl font-semibold text-gray-900 dark:text-white">Neurosurgery</h2>
-            <p class="text-gray-600 dark:text-gray-400 my-4">Consults for surgical treatment of the nervous system.<br><strong class="mt-2 block">Note Generation Function</strong></p>
-            <a href="neurosurgery.html"
-               class="block text-center bg-blue-800 hover:bg-blue-900 dark:bg-blue-900 dark:hover:bg-blue-800 text-white font-medium py-2 px-4 rounded-md">
-                Go to Consult
-            </a>
-        </div>
+        <div class="card bg-white dark:bg-gray-800 rounded-lg shadow-md p-6"><h2 class="text-2xl font-semibold">Neurosurgery</h2><p class="text-gray-400 my-4">Surgical neuro consults.<br><strong>Note Generation</strong></p><a href="neurosurgery.html" class="block text-center bg-blue-800 hover:bg-blue-900 text-white py-2 px-4 rounded-md">Go to Consult</a></div>
 
-        <!-- Ob/Gyn -->
-        <div class="card bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-            <h2 class="text-2xl font-semibold text-gray-900 dark:text-white">Ob/Gyn</h2>
-            <p class="text-gray-600 dark:text-gray-400 my-4">Consults for obstetrics and gynecology.<br><strong class="mt-2 block">Note Generation Function</strong></p>
-            <a href="obgyn.html"
-               class="block text-center bg-rose-600 hover:bg-rose-700 dark:bg-rose-700 dark:hover:bg-rose-600 text-white font-medium py-2 px-4 rounded-md">
-                Go to Consult
-            </a>
-        </div>
+        <!-- OB/GYN -->
+        <div class="card bg-white dark:bg-gray-800 rounded-lg shadow-md p-6"><h2 class="text-2xl font-semibold">Ob/Gyn</h2><p class="text-gray-400 my-4">Women's health consults.<br><strong>Note Generation</strong></p><a href="obgyn.html" class="block text-center bg-rose-600 hover:bg-rose-700 text-white py-2 px-4 rounded-md">Go to Consult</a></div>
 
         <!-- Occupational Therapy -->
-        <div class="card bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-            <h2 class="text-2xl font-semibold text-gray-900 dark:text-white">Occupational Therapy</h2>
-            <p class="text-gray-600 dark:text-gray-400 my-4">Consults for rehab through daily activities.<br><strong class="mt-2 block">Note Generation Function</strong></p>
-            <a href="occupational_therapy.html"
-               class="block text-center bg-amber-600 hover:bg-amber-700 dark:bg-amber-700 dark:hover:bg-amber-600 text-white font-medium py-2 px-4 rounded-md">
-                Go to Consult
-            </a>
-        </div>
+        <div class="card bg-white dark:bg-gray-800 rounded-lg shadow-md p-6"><h2 class="text-2xl font-semibold">Occupational Therapy</h2><p class="text-gray-400 my-4">ADLs + rehab consults.<br><strong>Note Generation</strong></p><a href="occupational_therapy.html" class="block text-center bg-amber-600 hover:bg-amber-700 text-white py-2 px-4 rounded-md">Go to Consult</a></div>
 
         <!-- Orthopedic Surgery -->
-        <div class="card bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-            <h2 class="text-2xl font-semibold text-gray-900 dark:text-white">Orthopedic Surgery</h2>
-            <p class="text-gray-600 dark:text-gray-40s0 my-4">Consults for musculoskeletal and bone surgery.<br><strong class="mt-2 block">Note Generation Function</strong></p>
-            <a href="orthopedic_surgery.html"
-               class="block text-center bg-gray-600 hover:bg-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600 text-white font-medium py-2 px-4 rounded-md">
-                Go to Consult
-            </a>
-        </div>
+        <div class="card bg-white dark:bg-gray-800 rounded-lg shadow-md p-6"><h2 class="text-2xl font-semibold">Orthopedic Surgery</h2><p class="text-gray-400 my-4">Bone + joint consults.<br><strong>Note Generation</strong></p><a href="orthopedic_surgery.html" class="block text-center bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded-md">Go to Consult</a></div>
 
         <!-- Pediatrics -->
-        <div class="card bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-            <h2 class="text-2xl font-semibold text-gray-900 dark:text-white">Pediatrics</h2>
-            <p class="text-gray-600 dark:text-gray-400 my-4">Consults for infants, children, and adolescents.<br><strong class="mt-2 block">Note Generation Function</strong></p>
-            <a href="pediatrics.html"
-               class="block text-center bg-sky-600 hover:bg-sky-700 dark:bg-sky-700 dark:hover:bg-sky-600 text-white font-medium py-2 px-4 rounded-md">
-                Go to Consult
-            </a>
-        </div>
+        <div class="card bg-white dark:bg-gray-800 rounded-lg shadow-md p-6"><h2 class="text-2xl font-semibold">Pediatrics</h2><p class="text-gray-400 my-4">Infants + children.<br><strong>Note Generation</strong></p><a href="pediatrics.html" class="block text-center bg-sky-600 hover:bg-sky-700 text-white py-2 px-4 rounded-md">Go to Consult</a></div>
 
         <!-- Clinical Pharmacology -->
-        <div class="card bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-            <h2 class="text-2xl font-semibold text-gray-900 dark:text-white">Clinical Pharmacology</h2>
-            <p class="text-gray-600 dark:text-gray-400 my-4">Consults for drug action and medication review.<br><strong class="mt-2 block">Note Generation Function</strong></p>
-            <a href="pharmacology.html"
-               class="block text-center bg-fuchsia-600 hover:bg-fuchsia-700 dark:bg-fuchsia-700 dark:hover:bg-fuchsia-600 text-white font-medium py-2 px-4 rounded-md">
-                Go to Consult
-            </a>
-        </div>
+        <div class="card bg-white dark:bg-gray-800 rounded-lg shadow-md p-6"><h2 class="text-2xl font-semibold">Clinical Pharmacology</h2><p class="text-gray-400 my-4">Medication + dosing consults.<br><strong>Note Generation</strong></p><a href="pharmacology.html" class="block text-center bg-fuchsia-600 hover:bg-fuchsia-700 text-white py-2 px-4 rounded-md">Go to Consult</a></div>
 
-        <!-- PM&R and Pain -->
-        <div class="card bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-            <h2 class="text-2xl font-semibold text-gray-900 dark:text-white">PM&R and Pain</h2>
-            <p class="text-gray-600 dark:text-gray-400 my-4">Consults for PM&R and functional restoration.<br><strong class="mt-2 block">Note Generation Function</strong></p>
-            <a href="pmr.html"
-               class="block text-center bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-700 dark:hover:bg-emerald-600 text-white font-medium py-2 px-4 rounded-md">
-                Go to Consult
-            </a>
-        </div>
+        <!-- PM&R / Pain -->
+        <div class="card bg-white dark:bg-gray-800 rounded-lg shadow-md p-6"><h2 class="text-2xl font-semibold">PM&R + Pain</h2><p class="text-gray-400 my-4">Rehab + pain consults.<br><strong>Note Generation</strong></p><a href="pmr.html" class="block text-center bg-emerald-600 hover:bg-emerald-700 text-white py-2 px-4 rounded-md">Go to Consult</a></div>
 
         <!-- Physical Therapy -->
-        <div class="card bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-            <h2 class="text-2xl font-semibold text-gray-900 dark:text-white">Physical Therapy</h2>
-            <p class="text-gray-600 dark:text-gray-400 my-4">Consults for physical therapy and movement.<br><strong class="mt-2 block">Note Generation Function</strong></p>
-            <a href="physical_therapy.html"
-               class="block text-center bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white font-medium py-2 px-4 rounded-md">
-                Go to Consult
-            </a>
-        </div>
+        <div class="card bg-white dark:bg-gray-800 rounded-lg shadow-md p-6"><h2 class="text-2xl font-semibold">Physical Therapy</h2><p class="text-gray-400 my-4">Functional mobility consults.<br><strong>Note Generation</strong></p><a href="physical_therapy.html" class="block text-center bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-md">Go to Consult</a></div>
 
         <!-- Psychiatry -->
-        <div class="card bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-            <h2 class="text-2xl font-semibold text-gray-900 dark:text-white">Psychiatry</h2>
-            <p class="text-gray-600 dark:text-gray-400 my-4">Consults for mental health and psychiatric care.<br><strong class="mt-2 block">Note Generation Function</strong></p>
-            <a href="psychiatry.html"
-               class="block text-center bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-700 dark:hover:bg-indigo-600 text-white font-medium py-2 px-4 rounded-md">
-                Go to Consult
-            </a>
-        </div>
+        <div class="card bg-white dark:bg-gray-800 rounded-lg shadow-md p-6"><h2 class="text-2xl font-semibold">Psychiatry</h2><p class="text-gray-400 my-4">Mental health consults.<br><strong>Note Generation</strong></p><a href="psychiatry.html" class="block text-center bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-4 rounded-md">Go to Consult</a></div>
 
         <!-- Pulmonary -->
-        <div class="card bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-            <h2 class="text-2xl font-semibold text-gray-900 dark:text-white">Pulmonary</h2>
-            <p class="text-gray-600 dark:text-gray-400 my-4">Consults for lung and respiratory conditions.<br><strong class="mt-2 block">Note Generation Function</strong></p>
-            <a href="pulmonary.html"
-               class="block text-center bg-cyan-600 hover:bg-cyan-700 dark:bg-cyan-700 dark:hover:bg-cyan-600 text-white font-medium py-2 px-4 rounded-md">
-                Go to Consult
-            </a>
-        </div>
+        <div class="card bg-white dark:bg-gray-800 rounded-lg shadow-md p-6"><h2 class="text-2xl font-semibold">Pulmonary</h2><p class="text-gray-400 my-4">Respiratory consults.<br><strong>Note Generation</strong></p><a href="pulmonary.html" class="block text-center bg-cyan-600 hover:bg-cyan-700 text-white py-2 px-4 rounded-md">Go to Consult</a></div>
 
-        <!-- Hematology & Oncology -->
-        <div class="card bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-            <h2 class="text-2xl font-semibold text-gray-900 dark:text-white">Hematology & Oncology</h2>
-            <p class="text-gray-600 dark:text-gray-400 my-4">Consults for hematology and cancer treatment.<br><strong class="mt-2 block">Note Generation Function</strong></p>
-            <a href="hematology_oncology.html"
-               class="block text-center bg-red-800 hover:bg-red-900 dark:bg-red-900 dark:hover:bg-red-800 text-white font-medium py-2 px-4 rounded-md">
-                Go to Consult
-            </a>
-        </div>
+        <!-- Hematology / Oncology -->
+        <div class="card bg-white dark:bg-gray-800 rounded-lg shadow-md p-6"><h2 class="text-2xl font-semibold">Hematology & Oncology</h2><p class="text-gray-400 my-4">Cancer + blood consults.<br><strong>Note Generation</strong></p><a href="hematology_oncology.html" class="block text-center bg-red-800 hover:bg-red-900 text-white py-2 px-4 rounded-md">Go to Consult</a></div>
 
         <!-- Radiology -->
-        <div class="card bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-            <h2 class="text-2xl font-semibold text-gray-900 dark:text-white">Radiology</h2>
-            <p class="text-gray-600 dark:text-gray-400 my-4">Consults for medical imaging and diagnostics.<br><strong class="mt-2 block">Note Generation Function</strong></p>
-            <a href="radiology.html"
-               class="block text-center bg-gray-500 hover:bg-gray-600 dark:bg-gray-600 dark:hover:bg-gray-500 text-white font-medium py-2 px-4 rounded-md">
-                Go to Consult
-            </a>
-        </div>
+        <div class="card bg-white dark:bg-gray-800 rounded-lg shadow-md p-6"><h2 class="text-2xl font-semibold">Radiology</h2><p class="text-gray-400 my-4">Imaging consults.<br><strong>Note Generation</strong></p><a href="radiology.html" class="block text-center bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded-md">Go to Consult</a></div>
 
         <!-- Rheumatology -->
-        <div class="card bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-            <h2 class="text-2xl font-semibold text-gray-900 dark:text-white">Rheumatology</h2>
-            <p class="text-gray-600 dark:text-gray-400 my-4">Consults for autoimmune and musculoskeletal diseases.<br><strong class="mt-2 block">Note Generation Function</strong></p>
-            <a href="rheumatology.html"
-               class="block text-center bg-purple-800 hover:bg-purple-900 dark:bg-purple-900 dark:hover:bg-purple-800 text-white font-medium py-2 px-4 rounded-md">
-                Go to Consult
-            </a>
-        </div>
+        <div class="card bg-white dark:bg-gray-800 rounded-lg shadow-md p-6"><h2 class="text-2xl font-semibold">Rheumatology</h2><p class="text-gray-400 my-4">Autoimmune consults.<br><strong>Note Generation</strong></p><a href="rheumatology.html" class="block text-center bg-purple-800 hover:bg-purple-900 text-white py-2 px-4 rounded-md">Go to Consult</a></div>
 
         <!-- Urology -->
-        <div class="card bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-            <h2 class="text-2xl font-semibold text-gray-900 dark:text-white">Urology</h2>
-            <p class="text-gray-600 dark:text-gray-400 my-4">Consults for urinary tract and male reproductive system.<br><strong class="mt-2 block">Note Generation Function</strong></p>
-            <a href="urology.html"
-               class="block text-center bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-500 text-white font-medium py-2 px-4 rounded-md">
-                Go to Consult
-            </a>
-        </div>
-        
-        <!-- ... (your remaining existing cards go here unchanged, with class="card") ... -->
+        <div class="card bg-white dark:bg-gray-800 rounded-lg shadow-md p-6"><h2 class="text-2xl font-semibold">Urology</h2><p class="text-gray-400 my-4">Urinary tract consults.<br><strong>Note Generation</strong></p><a href="urology.html" class="block text-center bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-md">Go to Consult</a></div>
+
 
     </main>
 
     <footer class="text-center mt-12 py-6 border-t border-gray-300 dark:border-gray-700">
-        <p class="text-gray-600 dark:text-gray-400">© Powered by AI + Evidence-Based Medicine</p>
+        <p class="text-gray-400">© Powered by AI + Evidence-Based Medicine</p>
     </footer>
 </div>
 
-<!-- FILTER SPECIALTIES -->
+
+
+<!-- FILTER SEARCH -->
 <script>
 function filterCards() {
     const term = document.getElementById("search").value.toLowerCase();
