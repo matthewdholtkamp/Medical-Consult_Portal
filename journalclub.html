@@ -300,6 +300,32 @@
         #sourcesContent a:hover {
             text-decoration: underline;
         }
+
+        /* --- Follow-up Form Styles --- */
+        #followUpForm {
+            margin-top: 20px; /* Add space above the follow-up form */
+        }
+        #followUpForm .form-button {
+            background-color: var(--accent-color);
+        }
+        #followUpForm .form-button:hover {
+            background-color: #c73a52;
+        }
+
+        #followUpResult {
+            white-space: pre-wrap;
+            line-height: 1.7;
+            font-family: "Georgia", serif;
+            color: var(--text-primary);
+            background-color: var(--code-bg); /* Dark background to stand out */
+            border: 1px solid var(--code-border);
+            border-radius: 6px;
+            padding: 24px 32px; /* Match tab-content padding */
+            margin: 0 32px 32px 32px; /* Match form-section horizontal margins */
+        }
+        #followUpResult.hidden {
+            display: none;
+        }
     </style>
     
     <!-- ADDED THIS SCRIPT to render math symbols like ≥, ≈, etc. -->
@@ -379,6 +405,22 @@
             <div id="sources" class="tab-content hidden">
                 <div id="sourcesContent"></div>
             </div>
+
+            <!-- --- STEP 5: Follow-up Form --- -->
+            <form id="followUpForm" class="form-section">
+                <h3>Ask a Follow-up Question</h3>
+                <div class="form-group">
+                    <label for="followUpInput">Enter your question based on the topic above:</label>
+                    <input type="text" id="followUpInput" required>
+                </div>
+                <button type="submit" id="followUpButton" class="form-button">Submit Question</button>
+            </form>
+            
+            <!-- Follow-up Result -->
+            <!-- The main loader will be used, but the result appears here -->
+            <div id="followUpResult" class="hidden">
+                <!-- Response will be injected here -->
+            </div>
         </div>
     </div>
 
@@ -399,8 +441,8 @@
 
     <script>
         // --- API Configuration ---
-        // !!! IMPORTANT: Replace "YOUR_API_KEY" with your actual Google AI API key
-        const API_KEY = "AIzaSyB4icRH1sBnW4nFfVbM2vocXDzpxQsdPoI"; // PASTE YOUR KEY HERE
+        // The API key is set to "" and will be provided by the environment.
+        const API_KEY = "AIzaSyB4icRH1sBnW4nFfVbM2vocXDzpxQsdPoI";
         
         // Model for text generation (with search)
         const GENERATE_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${API_KEY}`;
@@ -439,6 +481,12 @@
         const messageBox = document.getElementById('messageBox');
         const audioPlayer = document.getElementById('audioPlayer');
 
+        // --- Follow-up Form Elements ---
+        const followUpForm = document.getElementById('followUpForm');
+        const followUpInput = document.getElementById('followUpInput');
+        const followUpButton = document.getElementById('followUpButton');
+        const followUpResult = document.getElementById('followUpResult');
+
         // --- Global State ---
         let currentSummary = ""; // Stores the main summary for reuse
         let currentAudioUrl = null; // Stores the URL for the playable audio
@@ -452,6 +500,7 @@
         btnCopySummary.addEventListener('click', () => copyToClipboard('summaryContent', 'Summary'));
         btnCopyPlan.addEventListener('click', () => copyToClipboard('planContent', 'Treatment & Plan')); // NEW
         btnCopyRefs.addEventListener('click', () => copyToClipboard('referencesContent', 'References'));
+        followUpForm.addEventListener('submit', handleFollowUpSubmit);
 
         tabLinks.forEach(link => {
             link.addEventListener('click', () => {
@@ -529,10 +578,7 @@
         async function handleInitialSubmit(e) {
             e.preventDefault();
             
-            if (API_KEY === "" || API_KEY === "YOUR_API_KEY") {
-                showMessage("Error: Please add your Google AI API key to the index.html file.");
-                return;
-            }
+            // API key check removed. The environment will provide the key.
             
             // 1. Get user input
             const initialQuestion = initialQuestionInput.value;
@@ -565,6 +611,10 @@
             refinementForm.classList.add('hidden');
             refineButton.disabled = true;
             
+            // --- Hide follow-up results from previous query ---
+            followUpResult.classList.add('hidden');
+            followUpResult.innerText = '';
+            
             // 4. Call the API (no search tool needed for this step)
             try {
                 const payload = {
@@ -588,7 +638,7 @@
                     // Fallback in case the model doesn't follow the 'Q:' prefix
                     const fallbackQuestions = rawText.split('\n').filter(line => line.trim().length > 0 && line.includes('?'));
                     if (fallbackQuestions.length > 0) {
-                         displayRefinementForm(fallbackQuestions);
+                        displayRefinementForm(fallbackQuestions);
                     } else {
                         // Hardcoded fallback if AI fails
                         const defaultQuestions = [
@@ -687,10 +737,11 @@
                 2.  You **MUST** use the Google Search tool to find relevant, up-to-date and reputable sources that match the user's parameters.
                 3.  Prioritize guidelines from professional societies (AHA, ASA, SCCM) and high-impact journals (NEJM, JAMA, The Lancet, PubMed).
                 4.  **FORMATTING:** The output must be plain text. Do not use any bolding, italics, markdown, tables, or other special styling. Use standard paragraphs.
+                5.  **CITATIONS (CRITICAL):** You MUST cite your sources within the text using numbered brackets, e.g., [1], [2], [3].
                 
                 **Output Format (MANDATORY):**
                 
-                FIRST, provide the complete "Journal Club" summary. It must include these subheadings:
+                FIRST, provide the complete "Journal Club" summary. This summary **must include in-text citations** [1] that correspond to the reference list. It must include these subheadings:
                 Introduction and Background
                 Key Studies and Methodology
                 Key Findings
@@ -698,11 +749,11 @@
                 
                 SECOND, insert the exact delimiter "---TREATMENT_PLAN---".
                 
-                THIRD, provide a "Treatment and Plan" section. This must be an evidence-based, stepwise medical workup and a stepwise treatment plan. Use simple numbered lists or paragraphs.
+                THIRD, provide a "Treatment and Plan" section. This plan **must also include in-text citations** [1], [2] corresponding to the reference list. This must be an evidence-based, stepwise medical workup and a stepwise treatment plan. Use simple numbered lists or paragraphs.
                 
                 FOURTH, insert the exact delimiter "---APA_REFERENCES---".
                 
-                FIFTH, provide the complete list of all cited articles in APA 7th edition format.
+                FIFTH, provide the complete list of all cited articles. This list **MUST be numbered** (e.g., "1. Author, A..."), and the numbers must match the in-text citations. Format them in APA 7th edition style.
             `;
 
             // 3. Show loader and hide refinement form
@@ -717,6 +768,10 @@
             refinementForm.classList.add('hidden');
             refineButton.disabled = true; 
             generateButton.disabled = true;
+
+            // --- Hide follow-up results from previous query ---
+            followUpResult.classList.add('hidden');
+            followUpResult.innerText = '';
 
             // 4. Call the API (WITH search tool)
             try {
@@ -758,13 +813,13 @@
                     // Check if it missed the plan but got the refs
                     const recoveryRefSplit = rawText.split('---APA_REFERENCES---');
                     if (recoveryRefSplit.length > 1) {
-                         parsedData = {
+                        parsedData = {
                             journalClubSummary: recoveryRefSplit[0].trim(),
                             treatmentPlan: "Could not parse treatment plan from response.",
                             apaReferences: recoveryRefSplit[1].trim()
                         };
                     } else {
-                         parsedData = {
+                        parsedData = {
                             journalClubSummary: summary,
                             treatmentPlan: plan || "Could not parse treatment plan from response.",
                             apaReferences: "Could not parse references from response."
@@ -1072,7 +1127,7 @@
             a.href = blobUrl;
             a.download = filename;
             document.body.appendChild(a);
-a.click();
+            a.click();
             
             // Clean up
             document.body.removeChild(a);
@@ -1108,7 +1163,83 @@ a.click();
             return bytes.buffer;
         }
 
+        /**
+         * 11. Handles the follow-up question form submission.
+         */
+        async function handleFollowUpSubmit(e) {
+            e.preventDefault();
+            
+            const followUpQuestion = followUpInput.value;
+            if (!followUpQuestion || !currentSummary) {
+                showMessage("Please enter a follow-up question.");
+                return;
+            }
+
+            // 1. Construct the prompt
+            const followUpPrompt = `
+                You are a medical research assistant. A user has just reviewed a summary on a topic and has a follow-up question.
+                
+                **Original Summary Context:**
+                ${currentSummary}
+                
+                **Original Treatment Plan Context:**
+                ${planContent.innerText} 
+                
+                **User's Follow-up Question:**
+                "${followUpQuestion}"
+                
+                **Instructions:**
+                1.  Answer the user's follow-up question directly and concisely.
+                2.  Base your answer on the provided context and your general medical knowledge.
+                3.  **You MUST use the Google Search tool** to find information that specifically answers the user's follow-up question, even if it's related to the original topic.
+                4.  Format the response as plain text, suitable for displaying in a web-based text area. Do not use any bolding, markdown, or special formatting.
+            `;
+
+            // 2. Show loader
+            loaderText.innerText = "Researching follow-up question...";
+            loader.style.display = 'block'; // Use the main loader
+            followUpButton.disabled = true;
+            followUpResult.classList.add('hidden'); // Hide old result
+
+            // 3. Call API
+            try {
+                const payload = {
+                    "contents": [{ "parts": [{ "text": followUpPrompt }] }],
+                    "tools": [{ "google_search": {} }] // Enable search
+                };
+
+                const apiData = await fetchWithRetry(GENERATE_API_URL, payload);
+                
+                const candidate = apiData.candidates?.[0];
+                if (!candidate || !candidate.content?.parts?.[0]?.text) {
+                    throw new Error("Invalid API response for follow-up question.");
+                }
+
+                const responseText = candidate.content.parts[0].text;
+                
+                // 4. Display result
+                followUpResult.innerText = responseText;
+                followUpResult.classList.remove('hidden');
+                
+                // Re-typeset math if any is present
+                if (window.MathJax) {
+                    window.MathJax.typesetPromise([followUpResult])
+                        .catch((err) => console.log('MathJax Typeset Error: ', err));
+                }
+                
+                followUpInput.value = ""; // Clear input for next question
+
+            } catch (error) {
+                console.error('Error fetching follow-up:', error);
+                followUpResult.innerText = `Error: ${error.message}`;
+                followUpResult.classList.remove('hidden');
+            } finally {
+                // 5. Hide loader
+                loader.style.display = 'none';
+                followUpButton.disabled = false;
+            }
+        }
+
     </script>
 </body>
 </html>
-
