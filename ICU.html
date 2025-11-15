@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Critical Care ICU Note Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Hide scrollbar for cleaner look */
+        ::-webkit-scrollbar {
+            width: 0px;
+            background: transparent;
+        }
+        /* Simple loading spinner */
+        .loader {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 70px; 
+            height: 40px;
+        }
+        .loader > div {
+            width: 12px;
+            height: 12px;
+            background-color: #3b82f6; /* Blue-500 */
+            border-radius: 50%;
+            display: inline-block;
+            animation: bounce 1.4s infinite ease-in-out both;
+            margin: 0 4px;
+        }
+        .loader .bounce1 {
+            animation-delay: -0.32s;
+        }
+        .loader .bounce2 {
+            animation-delay: -0.16s;
+        }
+
+        /* Follow-up loader specific */
+        #follow-up-loader .loader {
+            width: 50px;
+            height: 24px;
+        }
+        #follow-up-loader .loader > div {
+            width: 8px;
+            height: 8px;
+            margin: 0 2px;
+        }
+
+        /* --- NEW STYLING FOR NOTE READABILITY --- */
+        #consult-output h2 {
+            font-size: 1.25rem; /* text-xl */
+            font-weight: 700; /* font-bold */
+            color: #bfdbfe; /* blue-200 (MAIN HIGHLIGHT) */
+            margin-top: 1.5rem; /* mt-6 */
+            margin-bottom: 0.75rem; /* mb-3 */
+            border-bottom: 1px solid #1e3a8a; /* blue-900 border */
+            padding-bottom: 0.25rem; 
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        #consult-output h3 {
+            font-size: 1.1rem;
+            font-weight: 700; /* Bolder */
+            color: #e5e7eb; /* gray-200 (Basic, but structured) */
+            margin-top: 1.5rem; /* mt-6 (More space between problems) */
+            margin-bottom: 0.5rem; /* mb-2 */
+        }
+        #consult-output strong {
+            font-weight: 700; 
+            color: #f3f4f6; /* gray-100 (Basic bold) */
+        }
+        #consult-output ul {
+            list-style-type: disc;
+            margin-bottom: 1rem; /* mb-4 */
+            padding-left: 1rem; /* Indent lists */
+        }
+        #consult-output p {
+            margin-bottom: 1rem; /* mb-4 */
+            line-height: 1.6; /* Better readability */
+            font-size: 0.95rem;
+        }
+        /* --- END NEW STYLING --- */
+        
+        /* Microphone Button Styles */
+        .mic-btn {
+            position: absolute;
+            bottom: 8px;
+            right: 8px;
+            display: none; 
+            align-items: center;
+            justify-content: center;
+            padding: 4px;
+            border: none;
+            border-radius: 50%;
+            background-color: #4b5563; 
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .mic-btn:hover {
+            background-color: #374151; 
+        }
+        .mic-btn.is-listening {
+            background-color: #dc2626; 
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0); } 
+            40% { transform: scale(1.0); }
+        }
+    </style>
+</head>
+<body class="bg-gray-900 flex items-center justify-center min-h-screen p-4">
+
+    <div class="bg-gray-800 w-full max-w-5xl rounded-lg shadow-xl overflow-hidden border border-gray-700">
+        
+        <!-- Header -->
+        <header class="bg-blue-900 text-white p-6 border-b border-blue-800">
+            <div class="flex flex-col items-center">
+                <h1 class="text-3xl font-bold text-center flex items-center justify-center">
+                    <span class="text-4xl mr-3">🫁</span>
+                    Critical Care ICU Note Generator
+                </h1>
+                <p class="text-center text-blue-200 mt-1 text-sm font-medium">Systems-Based Rounding Tool • ABCDE Bundle • Copy-Forward Workflow</p>
+            </div>
+        </header>
+
+        <!-- Main Content Area -->
+        <main class="p-6 md:p-8">
+
+            <!-- Speech Error Message -->
+            <div id="speech-error" class="hidden bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 rounded-md mb-6" role="alert">
+                <p class="font-bold">Microphone Error</p>
+                <p id="speech-error-message">Could not start dictation.</p>
+            </div>
+
+            <!-- Step 1: Base Context (Copy Forward) -->
+            <div id="step-1-context">
+                <div class="flex justify-between items-center mb-4">
+                    <div>
+                        <h2 class="text-2xl font-semibold text-gray-100">1) Base Clinical Context</h2>
+                        <p class="text-gray-400 text-sm">Paste yesterday's note, the H&P, or the problem list here.</p>
+                    </div>
+                    <button id="clear-step-1" class="text-sm text-blue-400 hover:text-blue-300 hover:underline">Clear Context</button>
+                </div>
+
+                <!-- HIPAA Disclaimer -->
+                <details class="bg-gray-700 border-l-4 border-gray-500 text-gray-300 p-3 rounded-md mb-6">
+                    <summary class="font-bold cursor-pointer hover:text-white text-sm">⚠️ HIPAA Reminder: De-identified Data Only</summary>
+                    <p class="text-xs mt-2">Do not include Names, MRNs, Dates of Birth (use Age), or other PHI.</p>
+                </details>
+                
+                <form id="form-context" class="space-y-4">
+                    <div class="mb-4">
+                        <label for="base-context" class="block text-sm font-medium text-gray-300 mb-1">History / Problem List / Prior Note:</label>
+                        <div class="relative">
+                            <textarea 
+                                id="base-context" 
+                                name="base-context" 
+                                rows="12" 
+                                class="block w-full border bg-gray-800 border-gray-600 text-gray-200 placeholder-gray-500 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 p-3 pr-12 font-mono text-sm" 
+                                placeholder="PASTE HERE:
+e.g.
+65M with PMH COPD, CHF (EF 35%), DM2 admitted for Septic Shock 2/2 PNA.
+Problems:
+1. Acute Hypoxic Respiratory Failure - intubated day 2.
+2. Septic Shock - on Levo.
+3. AKI - likely ATN.
+..."
+                            ></textarea>
+                            <button type="button" class="mic-btn" data-target-id="base-context">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="22"></line></svg>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="pt-4 flex justify-end">
+                        <button type="button" id="go-to-step-2-btn" class="bg-blue-700 hover:bg-blue-600 text-white font-semibold py-2 px-6 rounded-lg shadow transition duration-200">
+                            Next: Interval Updates &rarr;
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Step 2: Interval Updates -->
+            <div id="step-2-interval" class="hidden">
+                <div class="flex justify-between items-center mb-4">
+                    <div>
+                        <h2 class="text-2xl font-semibold text-gray-100">2) 24-Hour Interval Updates</h2>
+                        <p class="text-gray-400 text-sm">What happened overnight? What are the new numbers?</p>
+                    </div>
+                    <button id="back-to-step-1-top" class="text-sm text-gray-400 hover:text-white hover:underline">Back to Context</button>
+                </div>
+
+                <form id="form-interval" class="space-y-6">
+                    
+                    <!-- Overnight Events -->
+                    <div>
+                        <label for="overnight-events" class="block text-sm font-medium text-blue-200 mb-1">24-Hour Events / Subjective:</label>
+                        <div class="relative">
+                            <textarea id="overnight-events" rows="3" class="block w-full border bg-gray-700 border-gray-600 text-gray-200 placeholder-gray-400 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 p-2 pr-12" 
+                            placeholder="e.g., Febrile to 102 overnight, cultured. Desaturated to 88% req inc PEEP. Central line placed R IJ. Family meeting held."></textarea>
+                            <button type="button" class="mic-btn" data-target-id="overnight-events">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="22"></line></svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Objective Data Grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="vitals-io" class="block text-sm font-medium text-gray-300 mb-1">Vitals, I/O & Drips:</label>
+                            <div class="relative">
+                                <textarea id="vitals-io" rows="4" class="block w-full border bg-gray-700 border-gray-600 text-gray-200 placeholder-gray-400 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 p-2 pr-12" 
+                                placeholder="Tmax: 38.2, BP: 90/50 on Levo 0.1, HR: 110 AFib.
+I/O: +2.4L net positive. Urine 300cc/24hr.
+Drips: Levo 0.1, Vaso 0.03, Propofol 20."></textarea>
+                                <button type="button" class="mic-btn" data-target-id="vitals-io">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="22"></line></svg>
+                                </button>
+                            </div>
+                        </div>
+                        <div>
+                            <label for="vent-resp" class="block text-sm font-medium text-gray-300 mb-1">Respiratory / Vent Settings:</label>
+                            <div class="relative">
+                                <textarea id="vent-resp" rows="4" class="block w-full border bg-gray-700 border-gray-600 text-gray-200 placeholder-gray-400 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 p-2 pr-12" 
+                                placeholder="Mode: AC/VC
+Rate: 24, Vt: 420 (6cc/kg)
+PEEP: 10, FiO2: 50%
+ABG: 7.32 / 50 / 85 / 24
+Secretions: Thick yellow"></textarea>
+                                <button type="button" class="mic-btn" data-target-id="vent-resp">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="22"></line></svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Labs/Imaging -->
+                    <div>
+                        <label for="labs-imaging" class="block text-sm font-medium text-gray-300 mb-1">New Labs, Imaging & Micro:</label>
+                        <div class="relative">
+                            <textarea id="labs-imaging" rows="3" class="block w-full border bg-gray-700 border-gray-600 text-gray-200 placeholder-gray-400 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 p-2 pr-12" 
+                            placeholder="WBC 18 > 24. Cr 1.2 > 1.8. Lactate 4.2.
+CXR: New RLL consolidation.
+Blood Cx: GPC in chains pending ID."></textarea>
+                            <button type="button" class="mic-btn" data-target-id="labs-imaging">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="22"></line></svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="pt-4 flex justify-between items-center">
+                        <button type="button" id="back-to-step-1-btn" class="text-gray-400 hover:text-white">
+                            &larr; Back
+                        </button>
+                        <button type="button" id="generate-note-btn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-lg shadow-lg transition duration-200 flex items-center">
+                            Generate ICU Note
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Step 3: Output -->
+            <div id="step-3-output" class="hidden">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-2xl font-semibold text-gray-100">Critical Care Progress Note</h2>
+                    <!-- *** MODIFIED: In-line confirmation for reset *** -->
+                    <div id="start-over-controls" class="text-sm">
+                        <button id="start-over-btn" class="text-blue-400 hover:underline">New Patient / Reset</button>
+                        <div id="start-over-confirm" class="hidden space-x-2">
+                            <span class="text-yellow-400">Are you sure?</span>
+                            <button id="start-over-confirm-btn" class="text-red-400 hover:underline font-bold">Yes, Reset</button>
+                            <button id="start-over-cancel-btn" class="text-gray-400 hover:underline">Cancel</button>
+                        </div>
+                    </div>
+                    <!-- *** END MODIFICATION *** -->
+                </div>
+
+                <!-- Loading Spinner -->
+                <div id="loading-spinner" class="flex flex-col items-center justify-center min-h-[300px]">
+                    <div class="loader">
+                        <div class="bounce1"></div>
+                        <div class="bounce2"></div>
+                        <div class="bounce3"></div>
+                    </div>
+                    <p class="text-gray-400 mt-4 font-mono">Synthesizing Systems-Based Plan...</p>
+                    <p class="text-gray-500 text-sm mt-1">Checking ABCDE Bundle & Interactions</p>
+                </div>
+                
+                <!-- Note Output -->
+                <div id="output-container" class="hidden">
+                    <div class="bg-gray-800 p-1 rounded-t-lg border border-gray-700 flex justify-between items-center px-4 py-2 bg-gray-900">
+                        <span class="text-xs font-mono text-gray-400">Markdown Format</span>
+                        <button id="copy-btn" class="text-xs bg-gray-700 hover:bg-gray-600 text-white px-3 py-1 rounded border border-gray-600">Copy to Clipboard</button>
+                    </div>
+                    <div id="consult-output" class="bg-gray-900 p-6 rounded-b-lg border-x border-b border-gray-700 min-h-[400px] prose prose-invert max-w-none text-gray-300 font-sans">
+                        <!-- AI content injected here -->
+                    </div>
+                    <div id="copy-success" class="hidden text-center text-green-400 text-sm mt-2">Copied successfully!</div>
+                </div>
+
+                <!-- Follow-up Section -->
+                <div id="follow-up-section" class="hidden mt-8 border-t border-gray-700 pt-6">
+                    <h3 class="text-lg font-semibold text-gray-200 mb-2">Intensivist Assistant</h3>
+                    <p class="text-sm text-gray-400 mb-3">Ask about drug dosing, guidelines (e.g., "What is the Surviving Sepsis goal for MAP?"), or differential diagnoses.</p>
+                    
+                    <div class="flex gap-2">
+                        <input type="text" id="follow-up-input" class="flex-1 bg-gray-800 border border-gray-600 text-white rounded-md px-4 py-2 focus:ring-blue-500 focus:border-blue-500" placeholder="e.g., Recommended empiric abx for HAP?">
+                        <button id="submit-follow-up" class="bg-blue-700 hover:bg-blue-600 text-white px-4 py-2 rounded-md font-medium">Ask</button>
+                    </div>
+
+                    <div id="follow-up-loader" class="hidden mt-3">
+                        <div class="loader">
+                            <div class="bounce1"></div>
+                            <div class="bounce2"></div>
+                            <div class="bounce3"></div>
+                        </div>
+                    </div>
+
+                    <div id="follow-up-response" class="mt-4 hidden">
+                        <!-- Q&A responses go here -->
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Hidden Textarea for Copy-to-Clipboard -->
+    <textarea id="clipboard-helper" class="absolute -left-full"></textarea>
+
+    <script type="module">
+        // --- Configuration ---
+        const API_KEY = ""; // Auto-filled by environment
+        const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${API_KEY}`;
+        
+        // --- State ---
+        let chatHistory = []; 
+        
+        // --- DOM Elements ---
+        const steps = {
+            1: document.getElementById('step-1-context'),
+            2: document.getElementById('step-2-interval'),
+            3: document.getElementById('step-3-output')
+        };
+        const consultOutput = document.getElementById('consult-output');
+        const loader = document.getElementById('loading-spinner');
+        const outputContainer = document.getElementById('output-container');
+        
+        // --- Navigation ---
+        function showStep(stepNum) {
+            Object.values(steps).forEach(el => el.classList.add('hidden'));
+            steps[stepNum].classList.remove('hidden');
+            window.scrollTo(0,0);
+        }
+
+        document.getElementById('go-to-step-2-btn').addEventListener('click', () => showStep(2));
+        document.getElementById('back-to-step-1-btn').addEventListener('click', () => showStep(1));
+        document.getElementById('back-to-step-1-top').addEventListener('click', () => showStep(1));
+        
+        document.getElementById('clear-step-1').addEventListener('click', () => {
+            document.getElementById('base-context').value = '';
+        });
+
+        // --- *** MODIFIED: Replaced confirm() with inline UI *** ---
+        const startOverBtn = document.getElementById('start-over-btn');
+        const startOverConfirmDiv = document.getElementById('start-over-confirm');
+        const startOverConfirmBtn = document.getElementById('start-over-confirm-btn');
+        const startOverCancelBtn = document.getElementById('start-over-cancel-btn');
+
+        startOverBtn.addEventListener('click', () => {
+            startOverBtn.classList.add('hidden');
+            startOverConfirmDiv.classList.remove('hidden');
+        });
+
+        startOverCancelBtn.addEventListener('click', () => {
+            startOverBtn.classList.remove('hidden');
+            startOverConfirmDiv.classList.add('hidden');
+        });
+
+        startOverConfirmBtn.addEventListener('click', () => {
+            // This is the original logic from the old 'confirm()' block
+            document.getElementById('form-context').reset();
+            document.getElementById('form-interval').reset();
+            consultOutput.innerHTML = '';
+            document.getElementById('follow-up-response').innerHTML = '';
+            chatHistory = [];
+            showStep(1);
+            
+            // Reset the buttons
+            startOverBtn.classList.remove('hidden');
+            startOverConfirmDiv.classList.add('hidden');
+        });
+        // --- *** END MODIFICATION *** ---
+
+        // --- AI Generation Logic ---
+        document.getElementById('generate-note-btn').addEventListener('click', generateNote);
+
+        async function generateNote() {
+            showStep(3);
+            loader.classList.remove('hidden');
+            outputContainer.classList.add('hidden');
+            document.getElementById('follow-up-section').classList.add('hidden');
+
+            // Collect Data
+            const context = document.getElementById('base-context').value;
+            const events = document.getElementById('overnight-events').value;
+            const vitals = document.getElementById('vitals-io').value;
+            const resp = document.getElementById('vent-resp').value;
+            const labs = document.getElementById('labs-imaging').value;
+
+            const systemPrompt = `You are a board-certified Critical Care Intensivist. 
+YOUR PERFORMANCE WILL BE GRADED ON THE SUBSTANCE, DETAIL, AND CLINICAL RIGOR OF YOUR PLAN.
+YOUR PRIMARY GOAL IS SUBSTANCE AND DETAIL. BE EXTREMELY THOROUGH AND RIGOROUS. DO NOT WRITE SHORT, LOW-DETAIL PLANS.
+Your task is to write a highly structured, Systems-Based ICU Progress Note. 
+
+**Tone:** Professional, concise, rigorous, medical shorthand allowed (e.g., "cont," "titrate," "ppx").
+**Format:** Markdown.
+**Constraint:** DO NOT USE TABLES. Tables render poorly in this view. Use bullet points, numbered lists, or bold headers instead.
+
+**CRITICAL REQUIREMENT - DETAIL:**
+For all plans and medications, you MUST be specific.
+* **Medications:** Include **Dose, Route, Frequency, and Duration/Day #**. (e.g., "Vancomycin 1.5g IV q12h (Day 3/7)", "Levophed titrated to MAP > 65, current 0.1 mcg/kg/min", "Pantoprazole 40mg IV daily").
+* **Ventilator:** Include full settings (Mode, Rate, Vt, PEEP, FiO2).
+* **Fluids:** Include specific rate or bolus amount (e.g., "LR at 125cc/hr").
+* **VAGUE PLANS (e.g., "Continue meds," "Titrate pressors") ARE UNACCEPTABLE. BE EXPLICIT.**
+
+**CRITICAL REQUIREMENT - A/P STRUCTURE (EXPERT LEVEL):**
+For *each problem* listed under a system, your Assessment & Plan MUST have three parts:
+1.  **Pathophysiology/Etiology:** 1-2 lines explaining *why* this problem is happening (e.g., "Acute Hypoxic Resp Failure: 2/2 PNA and ARDS, causing V/Q mismatch and shunting." or "Septic shock 2/2 PNA, causing vasodilation and capillary leak...").
+2.  **Today's Plan:** The specific, detailed plan for today (e.g., "Cont. Levophed 0.1mcg/kg/min, titrate for MAP > 65. Vanc 1.5g IV q12h (Day 3/7), check 3rd trough 30min prior to 4th dose. Order TTE to assess LV function 2/2 new pressor req. Cont. LR 75cc/hr, monitor CVP/lactate.").
+3.  **Forward-Looking Plan / De-escalation Goals:** State the *criteria* for de-escalation/discontinuation. This is the plan to get the patient out of the ICU. (e.g., "Wean pressors as lactate < 2.0 and UOP > 0.5cc/kg/hr. De-escalate Abx per cultures/sensitivities in 24-48h. Extubation criteria: FiO2 <40%, PEEP <8, passing SBT, RASS 0 to -1, following commands/strong cough.").
+    * **Antibiotics:** "Plan to narrow based on final culture sensitivities." or "Stop after planned 7-day course."
+    * **Pressors:** "Continue titrating to maintain MAP > 65. Wean vasopressin first, then levophed."
+    * **Sedation:** "Perform daily Spontaneous Awakening Trial (SAT). Wean propofol first as tolerated, goal RASS -1 to 0."
+    * **Ventilator:** "Perform daily Spontaneous Breathing Trial (SBT). Criteria for extubation: FiO2 < 40%, PEEP < 8, stable hemodynamics off pressors, passing SBT, following commands/coughing."
+
+**STRUCTURE REQUIREMENTS:**
+
+1. **Summary Statement:** A classic "One-Liner" (e.g., "XX year old [Gender] with PMH of [X] admitted for [Y], now ICU Day [Z]. Course complicated by [A].")
+
+2. **24-HOUR INTERVAL EVENTS:**
+   (You will insert the user-provided "24-Hour Events" here. Briefly summarize the key overnight events, new fevers, desaturations, procedures, or family meetings as provided in the input.)
+
+3. **Systems-Based Assessment & Plan:** You MUST use these specific headers. Under each header, list the Active Problems/Diagnoses followed by the Plan (using the 3-part structure above).
+    * **NEUROLOGIC:** (Include sedation/RASS, pain, delirium/CAM-ICU).
+    * **CARDIOVASCULAR:** (Include Shock state, Rhythm, Pressors/Inotropes, MAP goals, volume status).
+    * **RESPIRATORY:** (Include Vent settings/Weaning plan, SBT status, Secretions, ABG interpretation).
+    * **RENAL / FLUIDS / LYTES:** (Include AKI/CKD status, Urine Output trends, Dialysis/CRRT, Electrolyte repletion).
+    * **GASTROINTESTINAL / NUTRITION:** (Include Diet/Feeds, Bowel Regimen, Liver function).
+    * **HEMATOLOGIC / INFECTIOUS DISEASE:** (Include Antibiotic Days [Day X of Y], Culture results, Transfusion thresholds).
+    * **ENDOCRINE:** (Include Glucose control/Insulin gtt).
+
+4. **Critical Care Checklist (MANDATORY SECTION):**
+   You must include a checklist section at the very bottom called "## ICU BUNDLE & PROPHYLAXIS".
+   * **FAST HUGS MAIDENS / ABCDE:**
+        * **Diet:** [Current Diet]
+        * **Analgesia/Sedation:** [Current Drips with doses] - Target RASS [X].
+        * **Thromboembolic Prophylaxis:** [Drug + Dose + Frequency]
+        * **Head of Bed:** Elevated >30 deg.
+        * **Ulcer Prophylaxis:** [Drug + Dose + Frequency or "Not indicated"]
+        * **Glucose Control:** [Target range]
+        * **Spontaneous Breathing Trial:** [Pass/Fail/Contraindicated]
+        * **Lines/Tubes:** [List lines and mention "Assess need for removal daily"]
+        * **Code Status:** [Full Code / DNR / DNI]
+        * **Dispo:** [ICU / Stepdown / Floor]
+
+**INPUT PROCESSING:**
+* The user will provide "Base Context," "Interval Updates (Vitals, Vent, Labs)," and "24-Hour Events."
+* **Synthesize** the Base Context and Interval Updates to formulate the systems-based plan.
+* **Insert** the "24-Hour Events" data directly into its own section ("## 24-HOUR INTERVAL EVENTS").
+* Synthesize these. If the previous note says "Plan: Start Levo" and the Interval says "Levo off", the new note must say "Cardiovascular: Septic Shock - Resolved off pressors."
+`;
+
+            const userPrompt = `
+**BASE CONTEXT (Prior Note/History):**
+${context}
+
+**INTERVAL UPDATES (Last 24h):**
+*Events:* ${events}
+*Vitals/I&O/Drips:* ${vitals}
+*Respiratory/Vent:* ${resp}
+*New Labs/Imaging:* ${labs}
+
+**TASK:** Generate the ICU Systems-Based Note for today.
+`;
+
+            chatHistory = [
+                { role: "user", parts: [{ text: userPrompt }] }
+            ];
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: chatHistory,
+                        systemInstruction: { parts: [{ text: systemPrompt }] },
+                        generationConfig: { temperature: 0.3 } // Low temp for clinical accuracy
+                    })
+                });
+
+                const data = await response.json();
+                if (data.candidates && data.candidates[0].content) {
+                    const aiText = data.candidates[0].content.parts[0].text;
+                    chatHistory.push({ role: "model", parts: [{ text: aiText }] });
+                    
+                    // Render Markdown
+                    consultOutput.innerHTML = parseMarkdown(aiText);
+                    
+                    outputContainer.classList.remove('hidden');
+                    document.getElementById('follow-up-section').classList.remove('hidden');
+                } else {
+                    throw new Error("No content generated");
+                }
+            } catch (err) {
+                // Use a non-blocking way to show error
+                consultOutput.innerHTML = `<p class="text-red-400">Error generating note. Please check connection. ${err.message}</p>`;
+                outputContainer.classList.remove('hidden');
+                console.error(err);
+            } finally {
+                loader.classList.add('hidden');
+            }
+        }
+
+        // --- Follow Up Logic ---
+        document.getElementById('submit-follow-up').addEventListener('click', async () => {
+            const input = document.getElementById('follow-up-input');
+            const val = input.value.trim();
+            if (!val) return;
+
+            const followUpContainer = document.getElementById('follow-up-response');
+            const followLoader = document.getElementById('follow-up-loader');
+            
+            input.disabled = true;
+            followLoader.classList.remove('hidden');
+            followUpContainer.classList.remove('hidden');
+
+            chatHistory.push({ role: "user", parts: [{ text: val }] });
+
+            const followUpSystemPrompt = `You are a Critical Care Intensivist assistant. 
+            Answer the user's medical question concisely. 
+            If asking about guidelines (Surviving Sepsis, ARDSnet, PADIS), cite them briefly.
+            If asking for a differential, provide a ranked list.
+            Keep it brief and high-yield for a rounding physician.
+            IMPORTANT: DO NOT use tables in your output. Use lists only.`;
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: chatHistory,
+                        systemInstruction: { parts: [{ text: followUpSystemPrompt }] },
+                        generationConfig: { temperature: 0.2 }
+                    })
+                });
+                const data = await response.json();
+                const aiText = data.candidates[0].content.parts[0].text;
+                chatHistory.push({ role: "model", parts: [{ text: aiText }] });
+
+                // Append Q&A
+                const qaDiv = document.createElement('div');
+                qaDiv.className = "mb-4 border-b border-gray-700 pb-4";
+                qaDiv.innerHTML = `
+                    <p class="text-blue-300 font-semibold text-sm mb-1">Q: ${val}</p>
+                    <div class="text-gray-300 text-sm prose prose-invert max-w-none">${parseMarkdown(aiText)}</div>
+                `;
+                followUpContainer.prepend(qaDiv); // Add new Q to top
+                input.value = '';
+
+            } catch (err) {
+                console.error(err);
+            } finally {
+                input.disabled = false;
+                followLoader.classList.add('hidden');
+                input.focus();
+            }
+        });
+
+        // --- *** MODIFIED PARSER FUNCTION *** ---
+        // This function correctly handles paragraphs, headers, lists, and bolds.
+        function parseMarkdown(text) {
+            let blocks = text.split(/\n\n+/); // Split by 2 or more newlines (paragraphs)
+            
+            let html = blocks.map(block => {
+                // Trim whitespace
+                block = block.trim();
+                if (block.length === 0) return '';
+                
+                // Header 2
+                if (block.startsWith('## ')) {
+                    return '<h2>' + block.substring(3) + '</h2>';
+                }
+                // Header 3
+                if (block.startsWith('### ')) {
+                    return '<h3>' + block.substring(4) + '</h3>';
+                }
+                // List
+                if (block.startsWith('* ')) {
+                    let items = block.split('\n').map(item => {
+                        item = item.trim();
+                        if (item.startsWith('* ')) {
+                            return '<li>' + item.substring(2).trim() + '</li>';
+                        }
+                        // This handles list items that wrap to a new line but aren't new bullets
+                        // It's a simplification but works for this context.
+                        return item; 
+                    }).join('');
+                    // Re-wrap joined items that weren't the start of a list
+                    // This is imperfect but better than nothing. A real parser is complex.
+                    // A simple <li> wrapper for all lines in a * block is safer.
+                    items = block.split('\n').map(item => {
+                         item = item.trim();
+                         if (item.startsWith('* ')) {
+                            return '<li>' + item.substring(2).trim() + '</li>';
+                         }
+                         return '<li>' + item + '</li>'; // Assume wrapped lines are new items
+                    }).join('');
+
+                    // Let's try a simpler list logic:
+                    items = block.split('\n').map(item => {
+                        let trimmedItem = item.trim();
+                        // Remove the leading '*' or '-'
+                        if (trimmedItem.startsWith('* ')) {
+                            trimmedItem = trimmedItem.substring(2).trim();
+                        } else if (trimmedItem.startsWith('- ')) {
+                             trimmedItem = trimmedItem.substring(2).trim();
+                        }
+                        return '<li>' + trimmedItem + '</li>';
+                    }).join('');
+                    return '<ul>' + items + '</ul>';
+                }
+                // Paragraph
+                // Convert single newlines to <br> *within* a paragraph block
+                // --- *** FIX: Corrected typo '- +' to '+' *** ---
+                return '<p>' + block.replace(/\n/g, '<br>') + '</p>'; 
+            }).join('');
+            
+            // Now, do the bold replacement *after* HTML is structured
+            html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            
+            return html;
+        }
+        // --- *** END MODIFICATION *** ---
+
+
+        // --- Clipboard ---
+        document.getElementById('copy-btn').addEventListener('click', () => {
+            // const text = consultOutput.innerText; // Old plain text method
+            
+            // --- NEW "RICH TEXT" COPY LOGIC ---
+            // This copies the formatted HTML (bolds, bullets, etc.) as seen on screen
+            // for pasting into EMRs that support rich text.
+            
+            const consultOutputEl = document.getElementById('consult-output');
+            const success = document.getElementById('copy-success');
+            
+            try {
+                // 1. Create a range and select the content of the output div
+                const range = document.createRange();
+                range.selectNode(consultOutputEl); 
+                
+                // 2. Clear any existing selections
+                const selection = window.getSelection();
+                selection.removeAllRanges(); 
+                
+                // 3. Add the new range to the selection
+                selection.addRange(range); 
+                
+                // 4. Execute the copy command
+                // This copies the selected HTML as rich text
+                document.execCommand('copy'); 
+                
+                // 5. Clean up the selection
+                selection.removeAllRanges(); 
+
+                // Show success message
+                success.classList.remove('hidden');
+                setTimeout(() => success.classList.add('hidden'), 2000);
+            } catch (err) {
+                console.error("Rich text copy failed, falling back to plain text: ", err);
+                
+                // --- FALLBACK TO PLAIN TEXT (innerText) ---
+                // If rich text copy fails, try to copy the clean innerText
+                const text = consultOutputEl.innerText;
+                const helper = document.getElementById('clipboard-helper');
+                helper.value = text;
+                helper.select();
+                helper.setSelectionRange(0, 99999);
+                try {
+                    document.execCommand('copy');
+                    success.classList.remove('hidden');
+                    setTimeout(() => success.classList.add('hidden'), 2000);
+                } catch (err2) {
+                     console.error("Fallback plain text copy also failed: ", err2);
+                }
+            }
+        });
+
+        // --- Speech Recognition (Basic Implementation) ---
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        let recognition; // Keep recognition instance
+        let activeTextarea = null; // Track active textarea
+
+        if (SpeechRecognition) {
+            recognition = new SpeechRecognition();
+            recognition.continuous = true; // Stay on
+            recognition.interimResults = true; // Show interim
+            recognition.lang = 'en-US';
+
+            document.querySelectorAll('.mic-btn').forEach(btn => {
+                btn.style.display = 'flex';
+                btn.addEventListener('click', (e) => {
+                    const targetId = btn.dataset.targetId;
+                    const targetEl = document.getElementById(targetId);
+
+                    if (activeTextarea && activeTextarea === targetEl) {
+                        // Already listening on this one, so stop
+                        recognition.stop();
+                    } else if (activeTextarea) {
+                        // Listening on a *different* one, stop it and start new
+                        recognition.stop(); // This will trigger 'onend'
+                        // We will start the new one in the 'onend' handler
+                        btn.dataset.startPending = "true"; // Mark this to start after old one stops
+                        btn.classList.add('is-listening');
+                    } else {
+                        // Not listening anywhere, so start
+                        document.getElementById('speech-error').classList.add('hidden');
+                        activeTextarea = targetEl;
+                        btn.classList.add('is-listening');
+                        recognition.start();
+                    }
+                });
+            });
+
+            let baseTranscript = ''; // Text before mic was clicked
+            recognition.onstart = () => {
+                if(activeTextarea) {
+                    baseTranscript = activeTextarea.value;
+                    if (baseTranscript.length > 0 && !baseTranscript.endsWith(' ')) {
+                        baseTranscript += ' ';
+                    }
+                }
+            };
+            
+            recognition.onresult = (event) => {
+                if (!activeTextarea) return;
+
+                let interimTranscript = '';
+                let finalTranscript = '';
+
+                for (let i = event.resultIndex; i < event.results.length; ++i) {
+                    if (event.results[i].isFinal) {
+                        finalTranscript += event.results[i][0].transcript + ' ';
+                    } else {
+                        interimTranscript += event.results[i][0].transcript;
+                    }
+                }
+
+                activeTextarea.value = baseTranscript + finalTranscript + interimTranscript;
+                if (finalTranscript) {
+                    baseTranscript += finalTranscript; // Add final to base
+                }
+            };
+
+            recognition.onerror = (event) => {
+                console.error("Speech recognition error:", event.error);
+                const errorDiv = document.getElementById('speech-error');
+                const errorMessage = document.getElementById('speech-error-message');
+                if (event.error === 'not-allowed') {
+                    errorMessage.innerText = "Microphone access denied. Please allow it in your browser settings.";
+                } else {
+                    errorMessage.innerText = `Speech error: ${event.error}`;
+                }
+                errorDiv.classList.remove('hidden');
+                if (activeTextarea) {
+                    const btn = document.querySelector(`.mic-btn[data-target-id="${activeTextarea.id}"]`);
+                    if(btn) btn.classList.remove('is-listening');
+                }
+                activeTextarea = null;
+            };
+            
+            recognition.onend = () => {
+                if (activeTextarea) {
+                    const btn = document.querySelector(`.mic-btn[data-target-id="${activeTextarea.id}"]`);
+                    if(btn) btn.classList.remove('is-listening');
+                }
+                activeTextarea = null;
+                baseTranscript = '';
+
+                // Check if another mic button is waiting to start
+                const pendingBtn = document.querySelector('.mic-btn[data-start-pending="true"]');
+                if (pendingBtn) {
+                    pendingBtn.removeAttribute('data-start-pending');
+                    const targetId = pendingBtn.dataset.targetId;
+                    activeTextarea = document.getElementById(targetId);
+                    pendingBtn.classList.add('is-listening');
+                    recognition.start();
+                }
+            };
+        }
+    </script>
+</body>
+</html>
