@@ -53,6 +53,16 @@
             box-shadow: 0 12px 30px rgba(0, 0, 0, 0.28);
         }
 
+        /* Styling for blocked/coming soon cards */
+        .card-blocked {
+            opacity: 0.5;
+            filter: grayscale(0.8);
+            pointer-events: none;
+            user-select: none;
+            background: #0f172a; /* Darker background */
+            border: 1px solid #1e293b;
+        }
+
         .search-box {
             border: 1px solid #334155;
             background: #1e293b;
@@ -165,7 +175,7 @@
             I Understand — Continue
           </button>
       </div>
-      
+       
       <p class="text-xs text-center sm:text-right text-slate-500">By continuing you acknowledge this tool is for support only.</p>
     </div>
   </div>
@@ -196,7 +206,7 @@
 
   // Lock background scroll
   document.body.style.overflow = 'hidden';
-  
+   
   // Focus management
   if(dialog) dialog.focus();
   if(ackCheckbox) ackCheckbox.focus();
@@ -279,7 +289,7 @@
 <header class="relative overflow-hidden rounded-b-3xl mb-12 shadow-2xl border-b border-white/5">
 
   <div class="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-gray-900 -z-10"></div>
-  
+   
   <!-- Decorative background elements -->
   <div class="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full max-w-7xl pointer-events-none overflow-hidden">
       <div class="absolute top-[-20%] right-[-10%] w-[600px] h-[600px] rounded-full bg-blue-600/10 blur-[100px]"></div>
@@ -331,7 +341,9 @@
 <div class="container mx-auto px-4 pb-24 max-w-7xl">
     <main id="cardContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
 
-        <!-- ADTMC -->
+        <!-- ==================== ALLOWED CARDS ==================== -->
+
+        <!-- ADTMC (Special Color: Green) -->
         <div class="card group bg-white dark:bg-slate-800/50 dark:border dark:border-slate-700/50 rounded-2xl p-6 flex flex-col relative overflow-hidden">
             <div class="absolute top-0 right-0 w-24 h-24 bg-green-500/5 rounded-bl-full -mr-4 -mt-4 transition-all group-hover:bg-green-500/10"></div>
             <h2 class="text-2xl font-bold text-slate-900 dark:text-white mb-2">ADTMC</h2>
@@ -341,7 +353,7 @@
             </a>
         </div>
 
-        <!-- ADTMC+ (The MAJ Russel Special) -->
+        <!-- ADTMC+ (Special Color: Indigo) -->
         <div class="card group bg-white dark:bg-slate-800/50 dark:border dark:border-slate-700/50 rounded-2xl p-6 flex flex-col relative overflow-hidden">
             <div class="absolute top-0 right-0 w-24 h-24 bg-indigo-500/5 rounded-bl-full -mr-4 -mt-4 transition-all group-hover:bg-indigo-500/10"></div>
             <h2 class="text-2xl font-bold text-slate-900 dark:text-white mb-2">ADTMC+</h2>
@@ -351,7 +363,7 @@
             </a>
         </div>
 
-        <!-- Journal Club -->
+        <!-- Journal Club (Special Color: Red) -->
         <div class="card group bg-white dark:bg-slate-800/50 dark:border dark:border-slate-700/50 rounded-2xl p-6 flex flex-col relative overflow-hidden">
             <div class="absolute top-0 right-0 w-24 h-24 bg-red-500/5 rounded-bl-full -mr-4 -mt-4 transition-all group-hover:bg-red-500/10"></div>
             <h2 class="text-2xl font-bold text-slate-900 dark:text-white mb-2">Medical Journal Club</h2>
@@ -361,174 +373,176 @@
             </a>
         </div>
 
-        <!-- Cardiology -->
+        <!-- Cardiology (Standardized: White Hover with Sky Blue Text) -->
         <div class="card group bg-white dark:bg-slate-800/50 dark:border dark:border-slate-700/50 rounded-2xl p-6 flex flex-col">
             <h2 class="text-2xl font-bold text-slate-900 dark:text-white mb-2">Cardiology</h2>
             <p class="text-slate-500 dark:text-slate-400 mb-6 flex-grow">Consults for cardiovascular issues.<br><strong class="text-sky-500 text-sm">Note Generation</strong></p>
-            <a href="cardiology.html" class="mt-auto w-full bg-slate-100 dark:bg-slate-700 hover:bg-pink-600 hover:text-white dark:text-white font-medium py-3 px-4 rounded-xl text-center transition-colors">Go to Consult</a>
+            <a href="cardiology.html" class="mt-auto w-full bg-slate-100 dark:bg-slate-700 hover:bg-white hover:text-sky-500 font-medium py-3 px-4 rounded-xl text-center transition-colors duration-300 shadow-sm hover:shadow-white/10">Go to Consult</a>
         </div>
 
-        <!-- Endocrinology -->
-        <div class="card group bg-white dark:bg-slate-800/50 dark:border dark:border-slate-700/50 rounded-2xl p-6 flex flex-col">
-            <h2 class="text-2xl font-bold text-slate-900 dark:text-white mb-2">Endocrinology</h2>
-            <p class="text-slate-500 dark:text-slate-400 mb-6 flex-grow">Hormone/metabolism disorders.<br><strong class="text-sky-500 text-sm">Note Generation</strong></p>
-            <a href="endocrinology.html" class="mt-auto w-full bg-slate-100 dark:bg-slate-700 hover:bg-cyan-600 hover:text-white dark:text-white font-medium py-3 px-4 rounded-xl text-center transition-colors">Go to Consult</a>
-        </div>
-
-        <!-- ENT -->
-        <div class="card group bg-white dark:bg-slate-800/50 dark:border dark:border-slate-700/50 rounded-2xl p-6 flex flex-col">
-            <h2 class="text-2xl font-bold text-slate-900 dark:text-white mb-2">ENT</h2>
-            <p class="text-slate-500 dark:text-slate-400 mb-6 flex-grow">Ear, nose, throat consults.<br><strong class="text-sky-500 text-sm">Note Generation</strong></p>
-            <a href="ent.html" class="mt-auto w-full bg-slate-100 dark:bg-slate-700 hover:bg-teal-600 hover:text-white dark:text-white font-medium py-3 px-4 rounded-xl text-center transition-colors">Go to Consult</a>
-        </div>
-
-        <!-- Gastroenterology -->
-        <div class="card group bg-white dark:bg-slate-800/50 dark:border dark:border-slate-700/50 rounded-2xl p-6 flex flex-col">
-            <h2 class="text-2xl font-bold text-slate-900 dark:text-white mb-2">Gastroenterology</h2>
-            <p class="text-slate-500 dark:text-slate-400 mb-6 flex-grow">GI and digestive consults.<br><strong class="text-sky-500 text-sm">Note Generation</strong></p>
-            <a href="gastroenterology.html" class="mt-auto w-full bg-slate-100 dark:bg-slate-700 hover:bg-orange-600 hover:text-white dark:text-white font-medium py-3 px-4 rounded-xl text-center transition-colors">Go to Consult</a>
-        </div>
-
-        <!-- General Surgery -->
-        <div class="card group bg-white dark:bg-slate-800/50 dark:border dark:border-slate-700/50 rounded-2xl p-6 flex flex-col">
-            <h2 class="text-2xl font-bold text-slate-900 dark:text-white mb-2">General Surgery</h2>
-            <p class="text-slate-500 dark:text-slate-400 mb-6 flex-grow">Surgical evaluation consults.<br><strong class="text-sky-500 text-sm">Note Generation</strong></p>
-            <a href="general_surgery.html" class="mt-auto w-full bg-slate-100 dark:bg-slate-700 hover:bg-red-600 hover:text-white dark:text-white font-medium py-3 px-4 rounded-xl text-center transition-colors">Go to Consult</a>
-        </div>
-
-        <!-- Hepatology -->
-        <div class="card group bg-white dark:bg-slate-800/50 dark:border dark:border-slate-700/50 rounded-2xl p-6 flex flex-col">
-            <h2 class="text-2xl font-bold text-slate-900 dark:text-white mb-2">Hepatology</h2>
-            <p class="text-slate-500 dark:text-slate-400 mb-6 flex-grow">Liver and biliary system.<br><strong class="text-sky-500 text-sm">Note Generation</strong></p>
-            <a href="hepatology.html" class="mt-auto w-full bg-slate-100 dark:bg-slate-700 hover:bg-yellow-600 hover:text-white dark:text-white font-medium py-3 px-4 rounded-xl text-center transition-colors">Go to Consult</a>
-        </div>
-
-        <!-- Infectious Disease -->
-        <div class="card group bg-white dark:bg-slate-800/50 dark:border dark:border-slate-700/50 rounded-2xl p-6 flex flex-col">
-            <h2 class="text-2xl font-bold text-slate-900 dark:text-white mb-2">Infectious Disease</h2>
-            <p class="text-slate-500 dark:text-slate-400 mb-6 flex-grow">Infections and antibiotics consults.<br><strong class="text-sky-500 text-sm">Note Generation</strong></p>
-            <a href="infectious_disease.html" class="mt-auto w-full bg-slate-100 dark:bg-slate-700 hover:bg-lime-600 hover:text-white dark:text-white font-medium py-3 px-4 rounded-xl text-center transition-colors">Go to Consult</a>
-        </div>
-
-        <!-- Nephrology -->
-        <div class="card group bg-white dark:bg-slate-800/50 dark:border dark:border-slate-700/50 rounded-2xl p-6 flex flex-col">
-            <h2 class="text-2xl font-bold text-slate-900 dark:text-white mb-2">Nephrology</h2>
-            <p class="text-slate-500 dark:text-slate-400 mb-6 flex-grow">Kidney disease consults.<br><strong class="text-sky-500 text-sm">Note Generation</strong></p>
-            <a href="nephrology.html" class="mt-auto w-full bg-slate-100 dark:bg-slate-700 hover:bg-purple-600 hover:text-white dark:text-white font-medium py-3 px-4 rounded-xl text-center transition-colors">Go to Consult</a>
-        </div>
-
-        <!-- Neurology -->
+        <!-- Neurology (Standardized: White Hover with Sky Blue Text) -->
         <div class="card group bg-white dark:bg-slate-800/50 dark:border dark:border-slate-700/50 rounded-2xl p-6 flex flex-col">
             <h2 class="text-2xl font-bold text-slate-900 dark:text-white mb-2">Neurology</h2>
             <p class="text-slate-500 dark:text-slate-400 mb-6 flex-grow">Brain + CNS consults.<br><strong class="text-sky-500 text-sm">Note Generation</strong></p>
-            <a href="neurology.html" class="mt-auto w-full bg-slate-100 dark:bg-slate-700 hover:bg-blue-600 hover:text-white dark:text-white font-medium py-3 px-4 rounded-xl text-center transition-colors">Go to Consult</a>
+            <a href="neurology.html" class="mt-auto w-full bg-slate-100 dark:bg-slate-700 hover:bg-white hover:text-sky-500 font-medium py-3 px-4 rounded-xl text-center transition-colors duration-300 shadow-sm hover:shadow-white/10">Go to Consult</a>
         </div>
 
-        <!-- Neurosurgery -->
-        <div class="card group bg-white dark:bg-slate-800/50 dark:border dark:border-slate-700/50 rounded-2xl p-6 flex flex-col">
-            <h2 class="text-2xl font-bold text-slate-900 dark:text-white mb-2">Neurosurgery</h2>
-            <p class="text-slate-500 dark:text-slate-400 mb-6 flex-grow">Surgical neuro consults.<br><strong class="text-sky-500 text-sm">Note Generation</strong></p>
-            <a href="neurosurgery.html" class="mt-auto w-full bg-slate-100 dark:bg-slate-700 hover:bg-blue-800 hover:text-white dark:text-white font-medium py-3 px-4 rounded-xl text-center transition-colors">Go to Consult</a>
-        </div>
-
-        <!-- OB/GYN -->
-        <div class="card group bg-white dark:bg-slate-800/50 dark:border dark:border-slate-700/50 rounded-2xl p-6 flex flex-col">
-            <h2 class="text-2xl font-bold text-slate-900 dark:text-white mb-2">Ob/Gyn</h2>
-            <p class="text-slate-500 dark:text-slate-400 mb-6 flex-grow">Women's health consults.<br><strong class="text-sky-500 text-sm">Note Generation</strong></p>
-            <a href="obgyn.html" class="mt-auto w-full bg-slate-100 dark:bg-slate-700 hover:bg-rose-600 hover:text-white dark:text-white font-medium py-3 px-4 rounded-xl text-center transition-colors">Go to Consult</a>
-        </div>
-
-        <!-- Occupational Therapy -->
-        <div class="card group bg-white dark:bg-slate-800/50 dark:border dark:border-slate-700/50 rounded-2xl p-6 flex flex-col">
-            <h2 class="text-2xl font-bold text-slate-900 dark:text-white mb-2">Occupational Therapy</h2>
-            <p class="text-slate-500 dark:text-slate-400 mb-6 flex-grow">ADLs + rehab consults.<br><strong class="text-sky-500 text-sm">Note Generation</strong></p>
-            <a href="occupational_therapy.html" class="mt-auto w-full bg-slate-100 dark:bg-slate-700 hover:bg-amber-600 hover:text-white dark:text-white font-medium py-3 px-4 rounded-xl text-center transition-colors">Go to Consult</a>
-        </div>
-
-        <!-- Orthopedic Surgery -->
-        <div class="card group bg-white dark:bg-slate-800/50 dark:border dark:border-slate-700/50 rounded-2xl p-6 flex flex-col">
-            <h2 class="text-2xl font-bold text-slate-900 dark:text-white mb-2">Orthopedic Surgery</h2>
-            <p class="text-slate-500 dark:text-slate-400 mb-6 flex-grow">Bone + joint consults.<br><strong class="text-sky-500 text-sm">Note Generation</strong></p>
-            <a href="orthopedic_surgery.html" class="mt-auto w-full bg-slate-100 dark:bg-slate-700 hover:bg-gray-600 hover:text-white dark:text-white font-medium py-3 px-4 rounded-xl text-center transition-colors">Go to Consult</a>
-        </div>
-
-        <!-- Pediatrics -->
-        <div class="card group bg-white dark:bg-slate-800/50 dark:border dark:border-slate-700/50 rounded-2xl p-6 flex flex-col">
-            <h2 class="text-2xl font-bold text-slate-900 dark:text-white mb-2">Pediatrics</h2>
-            <p class="text-slate-500 dark:text-slate-400 mb-6 flex-grow">Infants + children.<br><strong class="text-sky-500 text-sm">Note Generation</strong></p>
-            <a href="pediatrics.html" class="mt-auto w-full bg-slate-100 dark:bg-slate-700 hover:bg-sky-600 hover:text-white dark:text-white font-medium py-3 px-4 rounded-xl text-center transition-colors">Go to Consult</a>
-        </div>
-
-        <!-- Clinical Pharmacology -->
-        <div class="card group bg-white dark:bg-slate-800/50 dark:border dark:border-slate-700/50 rounded-2xl p-6 flex flex-col">
-            <h2 class="text-2xl font-bold text-slate-900 dark:text-white mb-2">Clinical Pharmacology</h2>
-            <p class="text-slate-500 dark:text-slate-400 mb-6 flex-grow">Medication + dosing consults.<br><strong class="text-sky-500 text-sm">Note Generation</strong></p>
-            <a href="pharmacology.html" class="mt-auto w-full bg-slate-100 dark:bg-slate-700 hover:bg-fuchsia-600 hover:text-white dark:text-white font-medium py-3 px-4 rounded-xl text-center transition-colors">Go to Consult</a>
-        </div>
-
-        <!-- PM&R / Pain -->
-        <div class="card group bg-white dark:bg-slate-800/50 dark:border dark:border-slate-700/50 rounded-2xl p-6 flex flex-col">
-            <h2 class="text-2xl font-bold text-slate-900 dark:text-white mb-2">PM&R + Pain</h2>
-            <p class="text-slate-500 dark:text-slate-400 mb-6 flex-grow">Rehab + pain consults.<br><strong class="text-sky-500 text-sm">Note Generation</strong></p>
-            <a href="pmr.html" class="mt-auto w-full bg-slate-100 dark:bg-slate-700 hover:bg-emerald-600 hover:text-white dark:text-white font-medium py-3 px-4 rounded-xl text-center transition-colors">Go to Consult</a>
-        </div>
-
-        <!-- Physical Therapy -->
-        <div class="card group bg-white dark:bg-slate-800/50 dark:border dark:border-slate-700/50 rounded-2xl p-6 flex flex-col">
-            <h2 class="text-2xl font-bold text-slate-900 dark:text-white mb-2">Physical Therapy</h2>
-            <p class="text-slate-500 dark:text-slate-400 mb-6 flex-grow">Functional mobility consults.<br><strong class="text-sky-500 text-sm">Note Generation</strong></p>
-            <a href="physical_therapy.html" class="mt-auto w-full bg-slate-100 dark:bg-slate-700 hover:bg-green-600 hover:text-white dark:text-white font-medium py-3 px-4 rounded-xl text-center transition-colors">Go to Consult</a>
-        </div>
-
-        <!-- Psychiatry -->
+        <!-- Psychiatry (Standardized: White Hover with Sky Blue Text) -->
         <div class="card group bg-white dark:bg-slate-800/50 dark:border dark:border-slate-700/50 rounded-2xl p-6 flex flex-col">
             <h2 class="text-2xl font-bold text-slate-900 dark:text-white mb-2">Psychiatry</h2>
             <p class="text-slate-500 dark:text-slate-400 mb-6 flex-grow">Mental health consults.<br><strong class="text-sky-500 text-sm">Note Generation</strong></p>
-            <a href="psychiatry.html" class="mt-auto w-full bg-slate-100 dark:bg-slate-700 hover:bg-indigo-600 hover:text-white dark:text-white font-medium py-3 px-4 rounded-xl text-center transition-colors">Go to Consult</a>
+            <a href="psychiatry.html" class="mt-auto w-full bg-slate-100 dark:bg-slate-700 hover:bg-white hover:text-sky-500 font-medium py-3 px-4 rounded-xl text-center transition-colors duration-300 shadow-sm hover:shadow-white/10">Go to Consult</a>
         </div>
 
-        <!-- Pulmonary -->
+        <!-- Orthopedic Surgery (Standardized: White Hover with Sky Blue Text) -->
         <div class="card group bg-white dark:bg-slate-800/50 dark:border dark:border-slate-700/50 rounded-2xl p-6 flex flex-col">
-            <h2 class="text-2xl font-bold text-slate-900 dark:text-white mb-2">Pulmonary</h2>
-            <p class="text-slate-500 dark:text-slate-400 mb-6 flex-grow">Respiratory consults.<br><strong class="text-sky-500 text-sm">Note Generation</strong></p>
-            <a href="pulmonary.html" class="mt-auto w-full bg-slate-100 dark:bg-slate-700 hover:bg-cyan-600 hover:text-white dark:text-white font-medium py-3 px-4 rounded-xl text-center transition-colors">Go to Consult</a>
+            <h2 class="text-2xl font-bold text-slate-900 dark:text-white mb-2">Orthopedic Surgery</h2>
+            <p class="text-slate-500 dark:text-slate-400 mb-6 flex-grow">Bone + joint consults.<br><strong class="text-sky-500 text-sm">Note Generation</strong></p>
+            <a href="orthopedic_surgery.html" class="mt-auto w-full bg-slate-100 dark:bg-slate-700 hover:bg-white hover:text-sky-500 font-medium py-3 px-4 rounded-xl text-center transition-colors duration-300 shadow-sm hover:shadow-white/10">Go to Consult</a>
         </div>
 
-        <!-- Hematology / Oncology -->
-        <div class="card group bg-white dark:bg-slate-800/50 dark:border dark:border-slate-700/50 rounded-2xl p-6 flex flex-col">
-            <h2 class="text-2xl font-bold text-slate-900 dark:text-white mb-2">Hematology & Oncology</h2>
-            <p class="text-slate-500 dark:text-slate-400 mb-6 flex-grow">Cancer + blood consults.<br><strong class="text-sky-500 text-sm">Note Generation</strong></p>
-            <a href="hematology_oncology.html" class="mt-auto w-full bg-slate-100 dark:bg-slate-700 hover:bg-red-800 hover:text-white dark:text-white font-medium py-3 px-4 rounded-xl text-center transition-colors">Go to Consult</a>
-        </div>
-
-        <!-- Radiology -->
-        <div class="card group bg-white dark:bg-slate-800/50 dark:border dark:border-slate-700/50 rounded-2xl p-6 flex flex-col">
-            <h2 class="text-2xl font-bold text-slate-900 dark:text-white mb-2">Radiology</h2>
-            <p class="text-slate-500 dark:text-slate-400 mb-6 flex-grow">Imaging consults.<br><strong class="text-sky-500 text-sm">Note Generation</strong></p>
-            <a href="radiology.html" class="mt-auto w-full bg-slate-100 dark:bg-slate-700 hover:bg-gray-500 hover:text-white dark:text-white font-medium py-3 px-4 rounded-xl text-center transition-colors">Go to Consult</a>
-        </div>
-
-        <!-- Rheumatology -->
+        <!-- Rheumatology (Standardized: White Hover with Sky Blue Text) -->
         <div class="card group bg-white dark:bg-slate-800/50 dark:border dark:border-slate-700/50 rounded-2xl p-6 flex flex-col">
             <h2 class="text-2xl font-bold text-slate-900 dark:text-white mb-2">Rheumatology</h2>
             <p class="text-slate-500 dark:text-slate-400 mb-6 flex-grow">Autoimmune consults.<br><strong class="text-sky-500 text-sm">Note Generation</strong></p>
-            <a href="rheumatology.html" class="mt-auto w-full bg-slate-100 dark:bg-slate-700 hover:bg-purple-800 hover:text-white dark:text-white font-medium py-3 px-4 rounded-xl text-center transition-colors">Go to Consult</a>
+            <a href="rheumatology.html" class="mt-auto w-full bg-slate-100 dark:bg-slate-700 hover:bg-white hover:text-sky-500 font-medium py-3 px-4 rounded-xl text-center transition-colors duration-300 shadow-sm hover:shadow-white/10">Go to Consult</a>
+        </div>
+
+        <!-- ==================== BLOCKED CARDS ==================== -->
+
+        <!-- Endocrinology -->
+        <div class="card-blocked rounded-2xl p-6 flex flex-col">
+            <h2 class="text-2xl font-bold text-slate-500 dark:text-slate-600 mb-2">Endocrinology</h2>
+            <p class="text-slate-600 dark:text-slate-700 mb-6 flex-grow">Hormone/metabolism disorders.</p>
+            <span class="mt-auto w-full bg-slate-200 dark:bg-slate-800 text-slate-500 font-medium py-3 px-4 rounded-xl text-center">Coming Soon</span>
+        </div>
+
+        <!-- ENT -->
+        <div class="card-blocked rounded-2xl p-6 flex flex-col">
+            <h2 class="text-2xl font-bold text-slate-500 dark:text-slate-600 mb-2">ENT</h2>
+            <p class="text-slate-600 dark:text-slate-700 mb-6 flex-grow">Ear, nose, throat consults.</p>
+            <span class="mt-auto w-full bg-slate-200 dark:bg-slate-800 text-slate-500 font-medium py-3 px-4 rounded-xl text-center">Coming Soon</span>
+        </div>
+
+        <!-- Gastroenterology -->
+        <div class="card-blocked rounded-2xl p-6 flex flex-col">
+            <h2 class="text-2xl font-bold text-slate-500 dark:text-slate-600 mb-2">Gastroenterology</h2>
+            <p class="text-slate-600 dark:text-slate-700 mb-6 flex-grow">GI and digestive consults.</p>
+            <span class="mt-auto w-full bg-slate-200 dark:bg-slate-800 text-slate-500 font-medium py-3 px-4 rounded-xl text-center">Coming Soon</span>
+        </div>
+
+        <!-- General Surgery -->
+        <div class="card-blocked rounded-2xl p-6 flex flex-col">
+            <h2 class="text-2xl font-bold text-slate-500 dark:text-slate-600 mb-2">General Surgery</h2>
+            <p class="text-slate-600 dark:text-slate-700 mb-6 flex-grow">Surgical evaluation consults.</p>
+            <span class="mt-auto w-full bg-slate-200 dark:bg-slate-800 text-slate-500 font-medium py-3 px-4 rounded-xl text-center">Coming Soon</span>
+        </div>
+
+        <!-- Hepatology -->
+        <div class="card-blocked rounded-2xl p-6 flex flex-col">
+            <h2 class="text-2xl font-bold text-slate-500 dark:text-slate-600 mb-2">Hepatology</h2>
+            <p class="text-slate-600 dark:text-slate-700 mb-6 flex-grow">Liver and biliary system.</p>
+            <span class="mt-auto w-full bg-slate-200 dark:bg-slate-800 text-slate-500 font-medium py-3 px-4 rounded-xl text-center">Coming Soon</span>
+        </div>
+
+        <!-- Infectious Disease -->
+        <div class="card-blocked rounded-2xl p-6 flex flex-col">
+            <h2 class="text-2xl font-bold text-slate-500 dark:text-slate-600 mb-2">Infectious Disease</h2>
+            <p class="text-slate-600 dark:text-slate-700 mb-6 flex-grow">Infections and antibiotics consults.</p>
+            <span class="mt-auto w-full bg-slate-200 dark:bg-slate-800 text-slate-500 font-medium py-3 px-4 rounded-xl text-center">Coming Soon</span>
+        </div>
+
+        <!-- Nephrology -->
+        <div class="card-blocked rounded-2xl p-6 flex flex-col">
+            <h2 class="text-2xl font-bold text-slate-500 dark:text-slate-600 mb-2">Nephrology</h2>
+            <p class="text-slate-600 dark:text-slate-700 mb-6 flex-grow">Kidney disease consults.</p>
+            <span class="mt-auto w-full bg-slate-200 dark:bg-slate-800 text-slate-500 font-medium py-3 px-4 rounded-xl text-center">Coming Soon</span>
+        </div>
+
+        <!-- Neurosurgery -->
+        <div class="card-blocked rounded-2xl p-6 flex flex-col">
+            <h2 class="text-2xl font-bold text-slate-500 dark:text-slate-600 mb-2">Neurosurgery</h2>
+            <p class="text-slate-600 dark:text-slate-700 mb-6 flex-grow">Surgical neuro consults.</p>
+            <span class="mt-auto w-full bg-slate-200 dark:bg-slate-800 text-slate-500 font-medium py-3 px-4 rounded-xl text-center">Coming Soon</span>
+        </div>
+
+        <!-- OB/GYN -->
+        <div class="card-blocked rounded-2xl p-6 flex flex-col">
+            <h2 class="text-2xl font-bold text-slate-500 dark:text-slate-600 mb-2">Ob/Gyn</h2>
+            <p class="text-slate-600 dark:text-slate-700 mb-6 flex-grow">Women's health consults.</p>
+            <span class="mt-auto w-full bg-slate-200 dark:bg-slate-800 text-slate-500 font-medium py-3 px-4 rounded-xl text-center">Coming Soon</span>
+        </div>
+
+        <!-- Occupational Therapy -->
+        <div class="card-blocked rounded-2xl p-6 flex flex-col">
+            <h2 class="text-2xl font-bold text-slate-500 dark:text-slate-600 mb-2">Occupational Therapy</h2>
+            <p class="text-slate-600 dark:text-slate-700 mb-6 flex-grow">ADLs + rehab consults.</p>
+            <span class="mt-auto w-full bg-slate-200 dark:bg-slate-800 text-slate-500 font-medium py-3 px-4 rounded-xl text-center">Coming Soon</span>
+        </div>
+
+        <!-- Pediatrics -->
+        <div class="card-blocked rounded-2xl p-6 flex flex-col">
+            <h2 class="text-2xl font-bold text-slate-500 dark:text-slate-600 mb-2">Pediatrics</h2>
+            <p class="text-slate-600 dark:text-slate-700 mb-6 flex-grow">Infants + children.</p>
+            <span class="mt-auto w-full bg-slate-200 dark:bg-slate-800 text-slate-500 font-medium py-3 px-4 rounded-xl text-center">Coming Soon</span>
+        </div>
+
+        <!-- Clinical Pharmacology -->
+        <div class="card-blocked rounded-2xl p-6 flex flex-col">
+            <h2 class="text-2xl font-bold text-slate-500 dark:text-slate-600 mb-2">Clinical Pharmacology</h2>
+            <p class="text-slate-600 dark:text-slate-700 mb-6 flex-grow">Medication + dosing consults.</p>
+            <span class="mt-auto w-full bg-slate-200 dark:bg-slate-800 text-slate-500 font-medium py-3 px-4 rounded-xl text-center">Coming Soon</span>
+        </div>
+
+        <!-- PM&R / Pain -->
+        <div class="card-blocked rounded-2xl p-6 flex flex-col">
+            <h2 class="text-2xl font-bold text-slate-500 dark:text-slate-600 mb-2">PM&R + Pain</h2>
+            <p class="text-slate-600 dark:text-slate-700 mb-6 flex-grow">Rehab + pain consults.</p>
+            <span class="mt-auto w-full bg-slate-200 dark:bg-slate-800 text-slate-500 font-medium py-3 px-4 rounded-xl text-center">Coming Soon</span>
+        </div>
+
+        <!-- Physical Therapy -->
+        <div class="card-blocked rounded-2xl p-6 flex flex-col">
+            <h2 class="text-2xl font-bold text-slate-500 dark:text-slate-600 mb-2">Physical Therapy</h2>
+            <p class="text-slate-600 dark:text-slate-700 mb-6 flex-grow">Functional mobility consults.</p>
+            <span class="mt-auto w-full bg-slate-200 dark:bg-slate-800 text-slate-500 font-medium py-3 px-4 rounded-xl text-center">Coming Soon</span>
+        </div>
+
+        <!-- Pulmonary -->
+        <div class="card-blocked rounded-2xl p-6 flex flex-col">
+            <h2 class="text-2xl font-bold text-slate-500 dark:text-slate-600 mb-2">Pulmonary</h2>
+            <p class="text-slate-600 dark:text-slate-700 mb-6 flex-grow">Respiratory consults.</p>
+            <span class="mt-auto w-full bg-slate-200 dark:bg-slate-800 text-slate-500 font-medium py-3 px-4 rounded-xl text-center">Coming Soon</span>
+        </div>
+
+        <!-- Hematology / Oncology -->
+        <div class="card-blocked rounded-2xl p-6 flex flex-col">
+            <h2 class="text-2xl font-bold text-slate-500 dark:text-slate-600 mb-2">Hematology & Oncology</h2>
+            <p class="text-slate-600 dark:text-slate-700 mb-6 flex-grow">Cancer + blood consults.</p>
+            <span class="mt-auto w-full bg-slate-200 dark:bg-slate-800 text-slate-500 font-medium py-3 px-4 rounded-xl text-center">Coming Soon</span>
+        </div>
+
+        <!-- Radiology -->
+        <div class="card-blocked rounded-2xl p-6 flex flex-col">
+            <h2 class="text-2xl font-bold text-slate-500 dark:text-slate-600 mb-2">Radiology</h2>
+            <p class="text-slate-600 dark:text-slate-700 mb-6 flex-grow">Imaging consults.</p>
+            <span class="mt-auto w-full bg-slate-200 dark:bg-slate-800 text-slate-500 font-medium py-3 px-4 rounded-xl text-center">Coming Soon</span>
         </div>
 
         <!-- Urology -->
-        <div class="card group bg-white dark:bg-slate-800/50 dark:border dark:border-slate-700/50 rounded-2xl p-6 flex flex-col">
-            <h2 class="text-2xl font-bold text-slate-900 dark:text-white mb-2">Urology</h2>
-            <p class="text-slate-500 dark:text-slate-400 mb-6 flex-grow">Urinary tract consults.<br><strong class="text-sky-500 text-sm">Note Generation</strong></p>
-            <a href="urology.html" class="mt-auto w-full bg-slate-100 dark:bg-slate-700 hover:bg-blue-500 hover:text-white dark:text-white font-medium py-3 px-4 rounded-xl text-center transition-colors">Go to Consult</a>
+        <div class="card-blocked rounded-2xl p-6 flex flex-col">
+            <h2 class="text-2xl font-bold text-slate-500 dark:text-slate-600 mb-2">Urology</h2>
+            <p class="text-slate-600 dark:text-slate-700 mb-6 flex-grow">Urinary tract consults.</p>
+            <span class="mt-auto w-full bg-slate-200 dark:bg-slate-800 text-slate-500 font-medium py-3 px-4 rounded-xl text-center">Coming Soon</span>
         </div>
 
         <!-- ICU -->
-        <div class="card group bg-white dark:bg-slate-800/50 dark:border dark:border-slate-700/50 rounded-2xl p-6 flex flex-col">
-            <h2 class="text-2xl font-bold text-slate-900 dark:text-white mb-2">ICU</h2>
-            <p class="text-slate-500 dark:text-slate-400 mb-6 flex-grow">Critical Care consults.<br><strong class="text-sky-500 text-sm">Note Generation</strong></p>
-            <a href="ICU.html" class="mt-auto w-full bg-slate-100 dark:bg-slate-700 hover:bg-blue-500 hover:text-white dark:text-white font-medium py-3 px-4 rounded-xl text-center transition-colors">Go to Consult</a>
+        <div class="card-blocked rounded-2xl p-6 flex flex-col">
+            <h2 class="text-2xl font-bold text-slate-500 dark:text-slate-600 mb-2">ICU</h2>
+            <p class="text-slate-600 dark:text-slate-700 mb-6 flex-grow">Critical Care consults.</p>
+            <span class="mt-auto w-full bg-slate-200 dark:bg-slate-800 text-slate-500 font-medium py-3 px-4 rounded-xl text-center">Coming Soon</span>
         </div>
-   
+    
     </main>
 
     <footer class="text-center mt-16 py-8 border-t border-slate-800">
@@ -540,17 +554,14 @@
 <script>
 function filterCards() {
     const term = document.getElementById("search").value.toLowerCase();
-    const cards = document.querySelectorAll("#cardContainer .card");
-    let visibleCount = 0;
-
+    const cards = document.querySelectorAll("#cardContainer > div"); // Select all direct children (active and blocked)
+    
     cards.forEach(card => {
         const text = card.textContent.toLowerCase();
         if (text.includes(term)) {
             card.style.display = "";
-            // Add subtle animation for reappearing items
-            card.style.opacity = "1";
+            card.style.opacity = card.classList.contains('card-blocked') ? "0.5" : "1"; // Keep blocked transparency
             card.style.transform = "scale(1)";
-            visibleCount++;
         } else {
             card.style.display = "none";
             card.style.opacity = "0";
