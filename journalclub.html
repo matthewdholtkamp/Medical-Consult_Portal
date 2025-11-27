@@ -134,6 +134,7 @@
         <div id="results" class="hidden">
             
             <!-- UPDATED TOOLBAR (GRID LAYOUT) -->
+            <!-- 8 columns total. Listen takes 4 (50%). The other 4 take 1 each. -->
             <div class="grid grid-cols-2 md:grid-cols-8 gap-2 mb-6 bg-slate-800/50 p-3 rounded-lg border border-slate-700 items-stretch">
                 
                 <!-- Listen Button: Biggest, First, Half Width -->
@@ -174,8 +175,6 @@
                 </div>
 
                 <audio id="audioPlayer" controls class="w-full hidden"></audio>
-                <!-- Hidden Script Debugger -->
-                <textarea id="debugScriptBox" class="w-full h-20 bg-black/50 text-xs text-gray-500 mt-2 rounded hidden" readonly></textarea>
             </div>
 
             <!-- Follow Up (MOVED TO TOP) -->
@@ -227,39 +226,58 @@
         const progressBar = el('audioProgressBar');
         const progressContainer = el('audioProgressContainer');
         const progressText = el('audioProgressText');
-        const debugScriptBox = el('debugScriptBox');
         
         let storedSummary = "";
         let storedContext = "";
 
-        // Core Fetch Function
-        async function fetchAPI(url, payload) {
-            try {
-                const response = await fetch(url, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
+        // Improved Retry Logic with Error Parsing
+        async function fetchWithRetry(url, payload, maxRetries = 5) {
+            for (let i = 0; i < maxRetries; i++) {
+                try {
+                    const res = await fetch(url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
 
-                if (response.status === 401) {
-                    throw new Error("Authentication Failed (401). API Key is missing or invalid.");
-                }
-
-                if (!response.ok) {
-                    const text = await response.text();
-                    let errorMsg = `API Error: ${response.status}`;
-                    try {
-                        const json = JSON.parse(text);
-                        if(json.error && json.error.message) errorMsg += ` - ${json.error.message}`;
-                    } catch(e) {
-                        if(text.length < 200) errorMsg += ` - ${text}`;
+                    // Handle Service Unavailable / Rate Limits by throwing to catch block
+                    if (res.status === 429 || res.status === 503) {
+                         throw new Error(`Transient Error: ${res.status}`);
                     }
-                    throw new Error(errorMsg);
+
+                    if (!res.ok) {
+                        let errorMsg = res.statusText || `Error ${res.status}`;
+                        // Try to parse detailed JSON error from API safely
+                        try {
+                            const text = await res.text();
+                            // Attempt to parse JSON
+                            try {
+                                const errorBody = JSON.parse(text);
+                                if (errorBody.error && errorBody.error.message) {
+                                    errorMsg = `${res.status} - ${errorBody.error.message}`;
+                                } else {
+                                    errorMsg = `${res.status} - ${JSON.stringify(errorBody)}`;
+                                }
+                            } catch (jsonErr) {
+                                // If not JSON, use truncated text if short, or just status
+                                if (text.length < 500) {
+                                    errorMsg = `${res.status} - ${text}`;
+                                }
+                            }
+                        } catch (readError) {
+                            // Failed to read response body, keep default statusText
+                        }
+                        throw new Error(errorMsg);
+                    }
+                    return await res.json();
+
+                } catch (e) {
+                    // Stop retrying if max retries reached
+                    if (i === maxRetries - 1) throw e;
+                    
+                    // Exponential backoff: 1s, 2s, 4s, 8s, 16s
+                    await new Promise(r => setTimeout(r, 1000 * Math.pow(2, i)));
                 }
-                return await response.json();
-            } catch (error) {
-                console.error("Fetch API failed:", error);
-                throw error;
             }
         }
         
@@ -267,8 +285,11 @@
         function stripLatex(text) {
             if (!text) return "";
             return text
+                // 1. Remove wrapping $ delimiters for inline math
                 .replace(/\$([^$]+)\$/g, '$1')
+                // 2. Remove \text{content} wrappers
                 .replace(/\\text\s*\{([^}]+)\}/g, '$1')
+                // 3. Replace common math symbols
                 .replace(/\\geq/g, '≥')
                 .replace(/\\leq/g, '≤')
                 .replace(/\\approx/g, '≈')
@@ -277,21 +298,26 @@
                 .replace(/\\times/g, 'x')
                 .replace(/\\cdot/g, '·')
                 .replace(/\\%/g, '%')
+                // 4. Remove generic backslashes before words
                 .replace(/\\([a-zA-Z]+)/g, ' $1 ')
                 .trim();
         }
 
         // --- Navigation Logic ---
+        
+        // Back to Step 1 (From Refinement)
         el('btnBackToStep1').addEventListener('click', () => {
             el('step2').classList.add('hidden');
             el('step1').classList.remove('hidden');
         });
 
+        // Back to Step 2 (From Results)
         el('btnBackToRefine').addEventListener('click', () => {
             el('results').classList.add('hidden');
             el('step2').classList.remove('hidden');
         });
 
+        // New Topic (Reset)
         el('btnNewTopic').addEventListener('click', () => {
              if(confirm("Start a new topic? This will clear current results.")) {
                  location.reload();
@@ -299,7 +325,7 @@
         });
 
 
-        // STEP 1: Handle Initial Query
+        // STEP 1: Handle Initial Query (Get Refinement Questions)
         queryForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const topic = el('initialQuestion').value;
@@ -311,13 +337,22 @@
                 Topic: "${topic}"
                 Role: Medical Research Librarian.
                 Task: Generate 5 specific *clarifying* questions to help the user narrow their search scope (PICO elements).
-                CRITICAL INSTRUCTION: Do NOT ask knowledge questions. Ask choice-based questions (e.g. "Pediatric or Adult?").
-                Output: A simple list of questions, one per line.
+                
+                CRITICAL INSTRUCTION: Do NOT ask knowledge questions (e.g., "What is the pathophysiology?"). 
+                Instead, ask questions that force the user to choose a direction (e.g., "Are you interested in pediatric or adult populations?", "Do you want to focus on diagnosis or treatment?", "Which specific drug class is the intervention?").
+                
+                Output: A simple list of questions, one per line. No bullets, no numbering, just the text.
             `;
 
             try {
-                const data = await fetchAPI(GENERATE_URL, {
-                    contents: [{ parts: [{ text: prompt }] }]
+                const data = await fetchWithRetry(GENERATE_URL, {
+                    contents: [{ parts: [{ text: prompt }] }],
+                    safetySettings: [
+                        { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
+                        { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
+                        { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
+                        { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" }
+                    ]
                 });
                 
                 const text = data.candidates[0].content.parts[0].text;
@@ -336,13 +371,13 @@
                 hideLoader();
                 el('step2').classList.remove('hidden');
             } catch (err) {
-                alert("Error generating questions. " + err.message);
+                alert("Error generating questions. Please try again. " + err.message);
                 el('step1').classList.remove('hidden');
                 hideLoader();
             }
         });
 
-        // STEP 2: Generate Content
+        // STEP 2: Generate Journal Club Content
         refineForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const topic = el('initialQuestion').value;
@@ -358,12 +393,12 @@
                 
                 MANDATORY STRUCTURE:
                 1. Identify EXACTLY 4 Key Trials:
-                   - Trial 1 & 2: The Two Historical Landmark Trials.
+                   - Trial 1 & 2: The Two Historical Landmark Trials (The foundation of current practice).
                    - Trial 3 & 4: The Two Most Important Recent/Emerging Trials (Last 5 years preferrable).
                 
                 2. Use Google Search to find real citations and DATES.
                 
-                OUTPUT FORMAT (Use Markdown). You MUST use the separators |||SECTION_PLAN||| and |||SECTION_REFS||| exactly as written below.
+                OUTPUT FORMAT (Use Markdown). You MUST use the separators |||SECTION_PLAN||| and |||SECTION_REFS||| exactly as written below to separate sections.
                 
                 # Journal Club Summary
                 
@@ -413,18 +448,26 @@
                 
                 [Full APA Citations List]
                 
-                CLEANLINESS INSTRUCTION: DO NOT use LaTeX syntax. Use simple UTF-8 symbols.
+                CLEANLINESS INSTRUCTION: DO NOT use LaTeX syntax (like \\geq, \\text{}, or $...$). Use simple UTF-8 symbols (e.g., ≥, mg/kg) or plain text. Use separate paragraphs for clarity.
             `;
 
             try {
-                const data = await fetchAPI(GENERATE_URL, {
+                const data = await fetchWithRetry(GENERATE_URL, {
                     contents: [{ parts: [{ text: mainPrompt }] }],
-                    tools: [{ google_search: {} }]
+                    tools: [{ google_search: {} }],
+                    safetySettings: [
+                        { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
+                        { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
+                        { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
+                        { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" }
+                    ]
                 });
 
                 const rawText = data.candidates[0].content.parts[0].text;
-                storedContext = rawText; 
+                storedContext = rawText; // Save for follow up
 
+                // ROBUST SPLIT LOGIC
+                // We split by the distinct tokens.
                 const split1 = rawText.split('|||SECTION_PLAN|||');
                 storedSummary = split1[0];
                 let remaining = split1[1] || "";
@@ -433,16 +476,24 @@
                 const planText = split2[0] || "No plan generated. Try refining.";
                 const refsText = split2[1] || "No references generated.";
 
-                el('summaryContent').innerHTML = marked.parse(stripLatex(storedSummary));
-                el('planContent').innerHTML = marked.parse(stripLatex(planText));
-                el('refsContent').innerText = stripLatex(refsText).trim();
+                // APPLY CLEANER (without aggressive newline stripping)
+                const cleanSummary = stripLatex(storedSummary);
+                const cleanPlan = stripLatex(planText);
+                const cleanRefs = stripLatex(refsText);
 
+                el('summaryContent').innerHTML = marked.parse(cleanSummary);
+                el('planContent').innerHTML = marked.parse(cleanPlan);
+                el('refsContent').innerText = cleanRefs.trim();
+
+                // Typeset Math (only if any valid MathJax remains, though we stripped most)
                 MathJax.typesetPromise();
+
                 hideLoader();
                 el('results').classList.remove('hidden');
 
             } catch (err) {
-                alert("Error synthesizing data. " + err.message);
+                console.error(err);
+                alert("Error synthesizing data. Check API key/Quota. " + err.message);
                 el('step2').classList.remove('hidden');
                 hideLoader();
             }
@@ -466,7 +517,7 @@
             });
         });
 
-        // REFACTORED AUDIO GENERATION - MATCHING WORKING SNIPPET STRUCTURE
+        // AUDIO GENERATION (The Holtkamp Persona)
         el('btnAudio').addEventListener('click', async () => {
             const btn = el('btnAudio');
             btn.disabled = true;
@@ -474,88 +525,100 @@
             // Declare intervals outside try block so they can be cleared in catch
             let scriptInterval, audioInterval;
 
-            // Show Container & Reset Progress
+            // Show Container & Progress
             el('audioContainer').classList.remove('hidden');
             progressContainer.classList.remove('hidden');
-            progressBar.style.width = '0%';
-            
-            // Step 1: Script Generation
-            progressText.innerText = "Step 1: Writing Dr. Holtkamp's Script...";
-            progressBar.style.width = '20%';
+            progressBar.style.width = '2%';
+            progressText.innerText = "Step 1: Scripting Lecture (Dr. Holtkamp Style)...";
+
+            // Simulated Progress: Step 1 (Scripting) - Fast
+            let progress = 2;
+            scriptInterval = setInterval(() => {
+                if (progress < 20) {
+                    progress += 2;
+                    progressBar.style.width = `${progress}%`;
+                }
+            }, 300);
 
             try {
-                // SCRIPT GENERATION
-                // Using 6000 char context to generate a robust script
-                let plainTextSummary = storedSummary.replace(/\\\[.*?\\\]/g, ' ').replace(/\$.*?\$/g, ' '); 
-
-                const lectureScriptPrompt = `
-                    You are Dr. Matthew Holtkamp. Write a 5-minute audio script summarizing the following medical trials.
-                    Tone: Fun, Professional, Authoritative.
-                    Structure: Intro, 2 Landmark Trials, 2 Recent Trials, Conclusion/Pearls.
-                    Length: detailed and comprehensive. Aim for roughly 800 words.
+                // Step 1: Generate the Persona Script (Requested shorter length)
+                const scriptPrompt = `
+                    You are Dr. Matthew Holtkamp. Convert the following medical summary into a robust audio transcript.
+                    
+                    Tone: Fun, Professional, Authoritative, but Conversational. 
+                    Style: Use rhetorical questions. Say things like "Here is the kicker," "Welcome back to Journal Club," or "Let's cut through the noise."
+                    
+                    Structure:
+                    1. Intro (High energy).
+                    2. Discuss the 2 Landmark trials (The history).
+                    3. Discuss the 2 Recent trials (The update).
+                    4. Give the "Bottom Line" advice.
+                    
+                    Length: detailed and comprehensive. Aim for roughly 4000-6000 words (approx 7 minutes spoken).
                     
                     TEXT TO ADAPT:
-                    ${plainTextSummary.substring(0, 6000)}
+                    ${storedSummary.substring(0, 6000)}
                 `;
 
-                const scriptData = await fetchAPI(GENERATE_URL, {
-                    contents: [{ parts: [{ text: lectureScriptPrompt }] }]
+                const scriptRes = await fetchWithRetry(GENERATE_URL, {
+                    contents: [{ parts: [{ text: scriptPrompt }] }],
+                    safetySettings: [
+                        { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
+                        { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
+                        { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
+                        { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" }
+                    ]
                 });
-                
-                let lectureScript = scriptData.candidates[0].content.parts[0].text;
+                let script = scriptRes.candidates[0].content.parts[0].text;
                 
                 // Stop script interval
                 clearInterval(scriptInterval);
                 progress = 25;
                 progressBar.style.width = '25%';
 
-                // Step 2: Audio Synthesis
-                progressText.innerText = "Step 2: Synthesizing Audio (Est. wait: ~2-3 mins)...";
+                // --- TRUNCATE FOR SAFETY ---
+                // Limit to 6000 chars for safe TTS generation (approx 7 mins)
+                if (script.length > 6000) {
+                    script = script.substring(0, 6000);
+                    const lastPeriod = script.lastIndexOf('.');
+                    if (lastPeriod > 0) script = script.substring(0, lastPeriod + 1);
+                }
+
+                // Step 2: TTS - Slow Progress simulation
+                progressText.innerText = "Step 2: Synthesizing Audio (Est. wait: ~5-7 mins)...";
                 
-                // Polished intro wrapping, exactly as requested from working code logic
-                const ttsPrompt = `Say in a clear, professional, and knowledgeable tone. Pay special attention to the correct pronunciation of all medical terms: This presentation is brought to you by Dr. Matthew Holtkamp. ${lectureScript}`;
-
-                // Truncate to safety limit
-                const safeText = ttsPrompt.substring(0, 4000); // 4000 chars is safe limit for single request
-
-                const ttsPayload = {
-                    "contents": [{ "parts": [{ "text": safeText }] }],
-                    "generationConfig": {
-                        "responseModalities": ["AUDIO"],
-                        "speechConfig": {
-                            "voiceConfig": { "prebuiltVoiceConfig": { "voiceName": "Sadaltager" } }
-                        }
-                    },
-                    "model": "gemini-2.5-flash-preview-tts"
-                };
-
                 // Create a slow crawl for the heavy lifting
-                let progressVal = 25;
                 audioInterval = setInterval(() => {
-                    if (progressVal < 90) {
-                        progressVal += 0.5; 
-                        progressBar.style.width = `${progressVal}%`;
+                    if (progress < 90) {
+                        // Slower increment
+                        progress += 0.5; 
+                        progressBar.style.width = `${progress}%`;
                     }
-                }, 500); 
+                }, 500); // Update every half second
                 
-                // TTS CALL - NO SAFETY SETTINGS
-                const ttsData = await fetchAPI(TTS_URL, ttsPayload);
+                // NOTE: Safety Settings REMOVED for TTS call to prevent 400 Bad Request
+                const ttsRes = await fetchWithRetry(TTS_URL, {
+                    contents: [{ parts: [{ text: script }] }],
+                    generationConfig: {
+                        responseModalities: ["AUDIO"],
+                        speechConfig: {
+                            voiceConfig: { prebuiltVoiceConfig: { voiceName: "Sadaltager" } } // Deep, professional voice
+                        }
+                    }
+                });
                 
-                if (!ttsData.candidates || !ttsData.candidates[0]) {
-                     throw new Error("TTS API returned no candidates.");
+                if (!ttsRes.candidates || !ttsRes.candidates[0]) {
+                     throw new Error("TTS API returned no candidates. Text might be too long.");
                 }
 
-                const audioData = ttsData.candidates[0].content.parts[0].inlineData.data;
-                const binaryString = atob(audioData);
-                const len = binaryString.length;
-                const bytes = new Uint8Array(len);
-                for (let i = 0; i < len; i++) {
-                    bytes[i] = binaryString.charCodeAt(i);
-                }
+                const audioData = ttsRes.candidates[0].content.parts[0].inlineData.data;
+                const binary = atob(audioData);
+                const bytes = new Uint8Array(binary.length);
+                for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
                 
-                // Convert PCM to WAV conversion using the inline library
+                // Convert PCM to WAV
                 const pcm16 = new Int16Array(bytes.buffer);
-                const wavBlob = pcmToWav(pcm16, 1, 24000); 
+                const wavBlob = pcmToWav(pcm16, 1, 24000);
                 const audioUrl = URL.createObjectURL(wavBlob);
 
                 const player = el('audioPlayer');
@@ -564,8 +627,9 @@
                 // Finish Progress
                 clearInterval(audioInterval);
                 progressBar.style.width = '100%';
-                progressText.innerText = "Audio Ready!";
+                progressText.innerText = "Audio Ready! (Duration: ~6 mins)";
                 
+                // Slight delay before showing player
                 setTimeout(() => {
                     progressContainer.classList.add('hidden');
                     player.classList.remove('hidden');
@@ -602,14 +666,20 @@
             `;
 
             try {
-                const data = await fetchAPI(GENERATE_URL, {
+                const data = await fetchWithRetry(GENERATE_URL, {
                     contents: [{ parts: [{ text: prompt }] }],
-                    tools: [{ google_search: {} }]
+                    tools: [{ google_search: {} }],
+                    safetySettings: [
+                        { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
+                        { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
+                        { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
+                        { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" }
+                    ]
                 });
                 const rawFollowUp = data.candidates[0].content.parts[0].text;
-                container.innerHTML = marked.parse(stripLatex(rawFollowUp));
+                container.innerHTML = marked.parse(stripLatex(rawFollowUp)); // Apply cleaner here too
             } catch (err) {
-                container.innerText = "Error: " + err.message;
+                container.innerText = "Error getting response.";
             }
         });
 
