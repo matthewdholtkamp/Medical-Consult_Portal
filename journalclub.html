@@ -3,1242 +3,633 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Medical Journal Club</title>
+    <title>Medical Journal Club - Dr. Holtkamp Edition</title>
+    <!-- Tailwind CSS for rapid, responsive styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- MathJax for rendering medical formulas -->
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <!-- Marked.js for Markdown rendering -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
     <style>
-        /* --- Dark Theme Colors --- */
+        /* Custom Theme Overrides */
         :root {
-            --bg-primary: #1a1a2e; /* Dark Blue-Purple */
-            --bg-secondary: #0f3460; /* Slightly lighter for containers */
-            --text-primary: #e0e0e0; /* Light gray text */
-            --text-secondary: #a0a0a0; /* Muted text */
-            --accent-color: #e94560; /* Vibrant Red/Pink for accents */
-            --title-color: #F39C12; /* Orange for title */
-            --button-bg: #533483; /* Darker purple for main buttons */
-            --button-hover-bg: #63409a;
-            --input-bg: #2a2a4a;
-            --input-border: #444466;
-            --header-bg: #16213e; /* Even darker header */
-            --disclaimer-bg: #2b2b4e;
-            --disclaimer-border: #4a4a6e;
-            --disclaimer-text: #b0b0d0;
-            --toolbar-bg: #232946;
-            --tab-inactive: #a0a0a0;
-            --tab-active: var(--accent-color);
-            --tab-border: #3a3a5e;
-            --code-bg: #232a3f;
-            --code-border: #3a4a6e;
+            --bg-primary: #1a1a2e;
+            --bg-secondary: #16213e;
+            --accent: #e94560;
+            --text-main: #e0e0e0;
+            --text-muted: #a0a0a0;
         }
 
-        /* --- Basic Setup --- */
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             background-color: var(--bg-primary);
-            color: var(--text-primary);
-            margin: 0;
-            padding: 20px;
+            color: var(--text-main);
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
         }
 
-        .container {
-            max-width: 900px;
-            margin: 0 auto;
-            background-color: var(--bg-secondary);
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-            overflow: hidden;
+        .glass-panel {
+            background: rgba(22, 33, 62, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        /* --- Header & Disclaimer --- */
-        header {
-            padding: 24px 32px;
-            background-color: var(--header-bg);
-            color: var(--text-primary);
+        /* Markdown Styles within the content area */
+        .prose-invert h1, .prose-invert h2, .prose-invert h3 {
+            color: #F39C12;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+            font-weight: 700;
         }
-        header h1 {
-            margin: 0;
-            font-size: 1.75rem;
-            text-align: center;
-            color: var(--title-color);
-        }
-        .disclaimer {
-            background-color: var(--disclaimer-bg);
-            color: var(--disclaimer-text);
-            border: 1px solid var(--disclaimer-border);
-            padding: 16px;
-            margin: 32px;
-            border-radius: 6px;
-            font-size: 0.9rem;
-            text-align: center;
-        }
-
-        /* --- Form Inputs (Shared Styles) --- */
-        .form-section {
-            padding: 0 32px 32px;
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 20px;
-        }
-        .form-group {
-            display: flex;
-            flex-direction: column;
-        }
-        .form-group label {
-            font-weight: 600;
-            margin-bottom: 8px;
-            font-size: 0.95rem;
-            color: var(--text-primary);
-        }
-        .form-group label span {
-            font-weight: 400;
-            color: var(--text-secondary);
-            font-size: 0.85rem;
-        }
-        .form-group input[type="text"] {
-            padding: 12px;
-            border: 1px solid var(--input-border);
-            border-radius: 6px;
-            font-size: 1rem;
-            background-color: var(--input-bg);
-            color: var(--text-primary);
-        }
-        .form-group input[type="text"]:focus {
-            outline: none;
-            border-color: var(--accent-color);
-            box-shadow: 0 0 0 2px rgba(233, 69, 96, 0.3);
-        }
-        .form-button {
-            background-color: var(--button-bg);
-            color: var(--text-primary);
-            padding: 14px;
-            border: none;
-            border-radius: 6px;
-            font-size: 1.1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background-color 0.2s;
-            margin-top: 10px;
-        }
-        .form-button:hover {
-            background-color: var(--button-hover-bg);
-        }
-        .form-button:disabled {
-            background-color: #4a4a6a;
-            cursor: not-allowed;
-            color: #888;
-        }
-
-        /* --- Refinement Area Specifics --- */
-        #refinementForm h3 {
-            margin: 0 0 10px 0;
-            color: var(--text-primary);
-            border-bottom: 1px solid var(--tab-border);
-            padding-bottom: 10px;
-        }
+        .prose-invert h2 { border-bottom: 1px solid #333; padding-bottom: 5px; }
+        .prose-invert strong { color: var(--accent); }
+        .prose-invert ul { list-style-type: disc; padding-left: 20px; margin: 10px 0; }
+        .prose-invert li { margin-bottom: 5px; }
+        .prose-invert p { margin-bottom: 1em; line-height: 1.7; }
+        .prose-invert a { color: #38bdf8; text-decoration: underline; } /* Link styling */
         
-        #refinementForm .form-button {
-            background-color: var(--accent-color); /* Make second button stand out */
+        /* Loading Animation */
+        .pulse-ring {
+            display: inline-block;
+            width: 64px;
+            height: 64px;
         }
-        #refinementForm .form-button:hover {
-            background-color: #c73a52;
-        }
-
-
-        /* --- Loader --- */
-        #loader {
-            display: none; /* Hidden by default */
-            text-align: center;
-            padding: 40px;
-            color: var(--text-secondary);
-        }
-        .spinner {
-            border: 4px solid var(--input-border);
-            border-top: 4px solid var(--accent-color);
+        .pulse-ring:after {
+            content: " ";
+            display: block;
+            width: 46px;
+            height: 46px;
+            margin: 1px;
             border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 16px;
+            border: 5px solid var(--accent);
+            border-color: var(--accent) transparent var(--accent) transparent;
+            animation: ring 1.2s linear infinite;
         }
-        @keyframes spin {
+        @keyframes ring {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-
-        /* --- Results Section --- */
-        #results {
-            padding: 0;
-        }
-        .hidden {
-            display: none;
-        }
-
-        /* Action Toolbar */
-        .toolbar {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            padding: 16px 32px;
-            background-color: var(--toolbar-bg);
-            border-bottom: 1px solid var(--tab-border);
-        }
-        .toolbar button {
-            background-color: var(--input-bg);
-            color: var(--text-primary);
-            border: 1px solid var(--input-border);
-            padding: 8px 14px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 0.9rem;
-            font-weight: 500;
-            transition: background-color 0.2s;
-        }
-        .toolbar button:hover {
-            background-color: #3a3a5e;
-        }
-        .toolbar button#btnAudio {
-            background-color: #3c6e71; /* A green-ish accent for audio */
-            border-color: #5c8b8e;
-            color: #e0f2f1;
-        }
-        .toolbar button#btnAudio:hover {
-            background-color: #4c8a8e;
-        }
-        .toolbar button:disabled {
-            background-color: #33334f;
-            color: #777;
-            cursor: not-allowed;
-            border-color: #4a4a6a;
-        }
-        
-        /* Audio Player */
-        #audioPlayer {
-            width: calc(100% - 64px); /* Full width minus padding */
-            margin: 16px 32px 0 32px;
-        }
-        #audioPlayer.hidden {
-            display: none;
-        }
-
-
-        /* Tabs */
-        .tab-nav {
-            display: flex;
-            border-bottom: 1px solid var(--tab-border);
-            padding: 0 32px;
-            margin-top: 16px; /* Add margin above tabs if audio player is visible */
-        }
-        .tab-nav button {
-            padding: 14px 20px;
-            border: none;
-            background: none;
-            cursor: pointer;
-            font-size: 1rem;
-            font-weight: 600;
-            color: var(--tab-inactive);
-            border-bottom: 3px solid transparent;
-            margin-bottom: -1px;
-        }
-        .tab-nav button.active {
-            color: var(--tab-active);
-            border-bottom-color: var(--tab-active);
-        }
-
-        /* Tab Content */
-        .tab-content {
-            padding: 24px 32px 32px;
-        }
-        /* Custom message box for alerts */
-        #messageBox {
-            display: none;
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: var(--accent-color);
-            color: var(--text-primary);
-            padding: 16px 24px;
-            border-radius: 6px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-            z-index: 1000;
-            font-size: 1rem;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-        #messageBox.show {
-            display: block;
-            opacity: 1;
-        }
-
-        #summaryContent, #planContent { /* Added #planContent */
-            white-space: pre-wrap; /* Preserves formatting */
-            line-height: 1.7;
-            font-family: "Georgia", serif;
-            color: var(--text-primary);
-        }
-        #referencesContent {
-            white-space: pre-wrap;
-            line-height: 1.6;
-            font-family: "Courier New", monospace;
-            font-size: 0.9rem;
-            background-color: var(--code-bg);
-            padding: 16px;
-            border-radius: 4px;
-            border: 1px solid var(--code-border);
-            color: var(--text-secondary);
-        }
-        #sourcesContent ul {
-            list-style-type: none;
-            padding-left: 0;
-        }
-        #sourcesContent li {
-            margin-bottom: 12px;
-        }
-        #sourcesContent a {
-            color: var(--accent-color);
-            text-decoration: none;
-            font-weight: 500;
-        }
-        #sourcesContent a:hover {
-            text-decoration: underline;
-        }
-
-        /* --- Follow-up Form Styles --- */
-        #followUpForm {
-            margin-top: 20px; /* Add space above the follow-up form */
-        }
-        #followUpForm .form-button {
-            background-color: var(--accent-color);
-        }
-        #followUpForm .form-button:hover {
-            background-color: #c73a52;
-        }
-
-        #followUpResult {
-            white-space: pre-wrap;
-            line-height: 1.7;
-            font-family: "Georgia", serif;
-            color: var(--text-primary);
-            background-color: var(--code-bg); /* Dark background to stand out */
-            border: 1px solid var(--code-border);
-            border-radius: 6px;
-            padding: 24px 32px; /* Match tab-content padding */
-            margin: 0 32px 32px 32px; /* Match form-section horizontal margins */
-        }
-        #followUpResult.hidden {
-            display: none;
-        }
     </style>
-    
-    <!-- ADDED THIS SCRIPT to render math symbols like ≥, ≈, etc. -->
-    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </head>
-<body>
+<body class="min-h-screen flex flex-col items-center p-4 md:p-8">
 
-    <div class="container">
-        <header>
-            <h1>Medical Journal Club</h1>
-        </header>
+    <!-- Header -->
+    <header class="w-full max-w-4xl text-center mb-10">
+        <h1 class="text-4xl md:text-5xl font-extrabold text-orange-500 tracking-tight mb-3">Medical Journal Club</h1>
+        <!-- Prominent Subtitle -->
+        <p class="text-blue-50 mt-2 text-2xl font-semibold leading-relaxed">Evidence summaries, audio breakdowns, and landmark trials</p>
+        <!-- Subdued Sub-subtitle -->
+        <p class="text-gray-500 text-sm mt-3 italic">Learning Starts Now - Brought to you by Dr. Matthew Holtkamp</p>
+    </header>
+
+    <main class="w-full max-w-4xl">
         
-        <p class="disclaimer">
-            <strong>For educational and informational purposes only.</strong> This tool does not provide medical advice and is not a substitute for professional clinical judgment.
-        </p>
-
-        <!-- --- STEP 1: Initial Question Form --- -->
-        <form id="queryForm" class="form-section">
-            <div class="form-group">
-                <label for="initialQuestion">1. Enter a Medical Topic or Question
-                    <span>e.g., "new treatments for sepsis," "management of status epilepticus"</span>
-                </label>
-                <input type="text" id="initialQuestion" required>
-            </div>
-            <button type="submit" id="refineButton" class="form-button">Refine Topic</button>
-        </form>
-        
-        <!-- --- STEP 2: Refinement Questions (hidden by default) --- -->
-        <form id="refinementForm" class="form-section hidden">
-            <h3>Please refine your topic:</h3>
-            <div id="dynamicFormContainer">
-                <!-- Generated free-text inputs will be injected here -->
-            </div>
-            <button type="submit" id="generateButton" class="form-button">Generate Summary</button>
-        </form>
-
-        <!-- --- STEP 3: Loader --- -->
-        <div id="loader">
-            <div class="spinner"></div>
-            <p id="loaderText">Synthesizing medical literature...</p>
+        <!-- Disclaimer -->
+        <div class="bg-blue-900/30 border border-blue-800 rounded-lg p-4 mb-8 text-center text-xs text-blue-200">
+            <strong>Educational Use Only.</strong> Not medical advice. Verify all citations and guidelines clinically.
         </div>
 
-        <!-- --- STEP 4: Results --- -->
-        <div id="results" class="hidden">
-            <!-- Action Toolbar -->
-            <div class="toolbar">
-                <button id="btnAudio">Generate Audio Lecture (.wav)</button>
-                <button id="btnKeyPoints">Download Key Points (.txt)</button>
-                <button id="btnCopySummary">Copy Summary</button>
-                <button id="btnCopyPlan">Copy Treatment & Plan</button>
-                <button id="btnCopyRefs">Copy References</button>
-            </div>
-            
-            <!-- NEW: Audio Player -->
-            <audio id="audioPlayer" controls class="hidden"></audio>
-
-            <!-- Tab Navigation -->
-            <nav class="tab-nav">
-                <button class="tab-link active" data-tab="summary">Journal Club Summary</button>
-                <!-- NEW "Treatment & Plan" TAB -->
-                <button class="tab-link" data-tab="plan">Treatment & Plan</button>
-                <button class="tab-link" data-tab="references">APA References</button>
-                <button class="tab-link" data-tab="sources">Verified Sources</button>
-            </nav>
-
-            <!-- Tab Content -->
-            <div id="summary" class="tab-content">
-                <div id="summaryContent"></div>
-            </div>
-            <!-- NEW "Treatment & Plan" CONTENT -->
-            <div id="plan" class="tab-content hidden">
-                <div id="planContent"></div>
-            </div>
-            <div id="references" class="tab-content hidden">
-                <div id="referencesContent"></div>
-            </div>
-            <div id="sources" class="tab-content hidden">
-                <div id="sourcesContent"></div>
-            </div>
-
-            <!-- --- STEP 5: Follow-up Form --- -->
-            <form id="followUpForm" class="form-section">
-                <h3>Ask a Follow-up Question</h3>
-                <div class="form-group">
-                    <label for="followUpInput">Enter your question based on the topic above:</label>
-                    <input type="text" id="followUpInput" required>
+        <!-- STEP 1: Initial Topic -->
+        <div id="step1" class="glass-panel rounded-xl p-6 shadow-2xl mb-6">
+            <form id="queryForm" class="space-y-4">
+                <div>
+                    <label class="block text-lg font-semibold mb-2">Topic or Clinical Question</label>
+                    <input type="text" id="initialQuestion" 
+                           class="w-full bg-slate-800 border border-slate-600 rounded-lg p-4 text-white focus:ring-2 focus:ring-orange-500 outline-none transition"
+                           placeholder="e.g., Dual antiplatelet therapy after minor stroke" required>
                 </div>
-                <button type="submit" id="followUpButton" class="form-button">Submit Question</button>
+                <button type="submit" id="btnRefine"
+                        class="w-full bg-indigo-700 hover:bg-indigo-600 text-white font-bold py-3 px-6 rounded-lg transition duration-200 flex justify-center items-center gap-2">
+                    <span>Initialize Refinement</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
+                </button>
             </form>
-            
-            <!-- Follow-up Result -->
-            <!-- The main loader will be used, but the result appears here -->
-            <div id="followUpResult" class="hidden">
-                <!-- Response will be injected here -->
-            </div>
         </div>
-    </div>
 
-    <!-- Message box for copy confirmations, etc. -->
-    <div id="messageBox"></div>
-
-    <!-- Helper functions for inlined pcm-to-wav library -->
-    <script>
-        var newArrayBuffer = function(size) { return new ArrayBuffer(size); };
-        var newDataView = function(buffer) { return new DataView(buffer); };
-        var newUint8Array = function(buffer, offset) { return new Uint8Array(buffer, offset); };
-        var newBlob = function(parts, options) { return new Blob(parts, options); };
-    </script>
-    <!-- Inlined pcm-to-wav library to prevent load errors -->
-    <script>
-    !function(e,t){"object"==typeof exports&&"object"==typeof module?module.exports=t():"function"==typeof define&&define.amd?define([],t):"object"==typeof exports?exports.pcmToWav=t():e.pcmToWav=t()}(window,function(){return function(e){var t={};function r(n){if(t[n])return t[n].exports;var o=t[n]={i:n,l:!1,exports:{}};return e[n].call(o.exports,o,o.exports,r),o.l=!0,o.exports}return r.m=e,r.c=t,r.d=function(e,t,n){r.o(e,t)||Object.defineProperty(e,t,{enumerable:!0,get:n})},r.r=function(e){"undefined"!=typeof Symbol&&Symbol.toStringTag&&Object.defineProperty(e,Symbol.toStringTag,{value:"Module"}),Object.defineProperty(e,"__esModule",{value:!0})},r.t=function(e,t){if(1&t&&(e=r(e)),8&t)return e;if(4&t&&"object"==typeof e&&e&&e.__esModule)return e;var n=Object.create(null);if(r.r(n),Object.defineProperty(n,"default",{enumerable:!0,value:e}),2&t&&"string"!=typeof e)for(var o in e)r.d(n,o,function(t){return e[t]}.bind(null,o));return n},r.n=function(e){var t=e&&e.__esModule?function(){return e.default}:function(){return e};return r.d(t,"a",t),t},r.o=function(e,t){return Object.prototype.hasOwnProperty.call(e,t)},r.p="",r(r.s=0)}([function(e,t,r){"use strict";Object.defineProperty(t,"__esModule",{value:!0}),t.default=function(e,t,r){var n,o,a,i,f,c,u,d=newDataView(newArrayBuffer(44+e.length*t*2));return d.setUint32(0,1380533830,!1),d.setUint32(4,36+e.length*t*2,!0),d.setUint32(8,1463899717,!1),d.setUint32(12,1718449184,!1),d.setUint32(16,16,!0),d.setUint16(20,1,!0),n=t,d.setUint16(22,n,!0),o=r,d.setUint32(24,o,!0),a=r*t*2,d.setUint32(28,a,!0),i=2*t,d.setUint16(32,i,!0),f=16,d.setUint16(34,f,!0),d.setUint32(36,1684108385,!1),c=e.length*t*2,d.setUint32(40,c,!0),u=newUint8Array(d.buffer,44),e.forEach(function(e,t){var r=44+2*t;d.setInt16(r,e,!0)}),newBlob([d.buffer],{type:"audio/wav"})},e.exports=t.default}])});
-    </script>
-
-    <script>
-        // --- API Configuration ---
-        // The API key is set to "" and will be provided by the environment.
-        const API_KEY = "AIzaSyD2CAh8chhZkxqQnwuRa2WOMBF3ESYH6yk";
-        
-        // Model for text generation (with search)
-        const GENERATE_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${API_KEY}`;
-        
-        // Model for Text-to-Speech (TTS)
-        const TTS_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${API_KEY}`;
-
-
-        // --- DOM Element References ---
-        const queryForm = document.getElementById('queryForm');
-        const refineButton = document.getElementById('refineButton');
-        const initialQuestionInput = document.getElementById('initialQuestion');
-        
-        const refinementForm = document.getElementById('refinementForm');
-        const dynamicFormContainer = document.getElementById('dynamicFormContainer');
-        const generateButton = document.getElementById('generateButton');
-        
-        const loader = document.getElementById('loader');
-        const loaderText = document.getElementById('loaderText');
-        const results = document.getElementById('results');
-        
-        const summaryContent = document.getElementById('summaryContent');
-        const planContent = document.getElementById('planContent'); // NEW: Treatment Plan
-        const referencesContent = document.getElementById('referencesContent');
-        const sourcesContent = document.getElementById('sourcesContent');
-        
-        const tabLinks = document.querySelectorAll('.tab-link');
-        const tabContents = document.querySelectorAll('.tab-content');
-
-        const btnAudio = document.getElementById('btnAudio');
-        const btnKeyPoints = document.getElementById('btnKeyPoints');
-        const btnCopySummary = document.getElementById('btnCopySummary');
-        const btnCopyPlan = document.getElementById('btnCopyPlan'); // NEW
-        const btnCopyRefs = document.getElementById('btnCopyRefs');
-        
-        const messageBox = document.getElementById('messageBox');
-        const audioPlayer = document.getElementById('audioPlayer');
-
-        // --- Follow-up Form Elements ---
-        const followUpForm = document.getElementById('followUpForm');
-        const followUpInput = document.getElementById('followUpInput');
-        const followUpButton = document.getElementById('followUpButton');
-        const followUpResult = document.getElementById('followUpResult');
-
-        // --- Global State ---
-        let currentSummary = ""; // Stores the main summary for reuse
-        let currentAudioUrl = null; // Stores the URL for the playable audio
-
-        // --- Event Listeners ---
-        queryForm.addEventListener('submit', handleInitialSubmit);
-        refinementForm.addEventListener('submit', handleSummaryFormSubmit);
-        
-        btnKeyPoints.addEventListener('click', handleDownloadKeyPoints);
-        btnAudio.addEventListener('click', handleDownloadAudio);
-        btnCopySummary.addEventListener('click', () => copyToClipboard('summaryContent', 'Summary'));
-        btnCopyPlan.addEventListener('click', () => copyToClipboard('planContent', 'Treatment & Plan')); // NEW
-        btnCopyRefs.addEventListener('click', () => copyToClipboard('referencesContent', 'References'));
-        followUpForm.addEventListener('submit', handleFollowUpSubmit);
-
-        tabLinks.forEach(link => {
-            link.addEventListener('click', () => {
-                const tabId = link.getAttribute('data-tab');
+        <!-- STEP 2: Refinement (Dynamic) -->
+        <div id="step2" class="glass-panel rounded-xl p-6 shadow-2xl mb-6 hidden">
+            <!-- UPDATED HEADER -->
+            <h3 class="text-xl font-bold text-orange-400 mb-4 border-b border-gray-700 pb-2">Refining Questions</h3>
+            <form id="refinementForm" class="space-y-4">
+                <div id="dynamicInputs" class="space-y-4"></div>
                 
-                // Update tab links
-                tabLinks.forEach(l => l.classList.remove('active'));
-                link.classList.add('active');
+                <div class="flex gap-4 pt-2">
+                    <button type="button" id="btnBackToStep1" class="w-1/3 bg-slate-700 hover:bg-slate-600 text-white font-bold py-3 px-4 rounded-lg">
+                        Back
+                    </button>
+                    <button type="submit" id="btnGenerate"
+                            class="w-2/3 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-500 hover:to-red-500 text-white font-bold py-3 px-6 rounded-lg shadow-lg transform transition hover:scale-[1.01]">
+                        Generate Analysis
+                    </button>
+                </div>
+            </form>
+        </div>
 
-                // Update tab content
-                tabContents.forEach(content => {
-                    if (content.id === tabId) {
-                        content.classList.remove('hidden');
-                    } else {
-                        content.classList.add('hidden');
-                    }
+        <!-- Loader -->
+        <div id="loader" class="hidden text-center py-12">
+            <div class="pulse-ring"></div>
+            <p id="loaderText" class="mt-4 text-orange-400 font-mono text-sm animate-pulse">Analyzing Clinical Trials...</p>
+        </div>
+
+        <!-- STEP 3: Results -->
+        <div id="results" class="hidden">
+            
+            <!-- UPDATED TOOLBAR (GRID LAYOUT) -->
+            <div class="grid grid-cols-2 md:grid-cols-8 gap-2 mb-6 bg-slate-800/50 p-3 rounded-lg border border-slate-700 items-stretch">
+                
+                <!-- Listen Button: Biggest, First, Half Width -->
+                <button id="btnAudio" class="col-span-2 md:col-span-4 bg-teal-700 hover:bg-teal-600 text-white px-4 py-3 rounded-lg font-bold text-lg flex items-center justify-center gap-2 shadow-lg transition-all h-full">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" /></svg>
+                    Listen
+                </button>
+
+                <!-- New Topic -->
+                <button id="btnNewTopic" class="md:col-span-1 bg-red-900/40 hover:bg-red-900/60 text-red-200 px-2 py-3 rounded-lg font-semibold text-xs md:text-sm border border-red-900/50 flex items-center justify-center h-full">
+                    New Topic
+                </button>
+
+                <!-- Back -->
+                <button id="btnBackToRefine" class="md:col-span-1 bg-slate-700 hover:bg-slate-600 text-gray-200 px-2 py-3 rounded-lg font-medium text-xs md:text-sm flex items-center justify-center h-full">
+                    Back
+                </button>
+                
+                <!-- Copy Text -->
+                <button id="btnCopy" class="md:col-span-1 bg-slate-700 hover:bg-slate-600 text-gray-200 px-2 py-3 rounded-lg font-medium text-xs md:text-sm flex items-center justify-center h-full">
+                    Copy Text
+                </button>
+
+                <!-- Copy Plan -->
+                <button id="btnPlan" class="md:col-span-1 bg-slate-700 hover:bg-slate-600 text-gray-200 px-2 py-3 rounded-lg font-medium text-xs md:text-sm flex items-center justify-center h-full">
+                    Copy Plan
+                </button>
+            </div>
+            
+            <!-- Audio Player Container -->
+            <div id="audioContainer" class="hidden mb-6 p-4 bg-teal-900/30 border border-teal-800 rounded-lg transition-all duration-300">
+                <p class="text-teal-200 text-sm mb-2 font-semibold">🎙️ Dr. Holtkamp's Analysis</p>
+                
+                <!-- Progress Bar -->
+                <div id="audioProgressContainer" class="w-full bg-gray-700 rounded-full h-2.5 mb-3 hidden">
+                    <div id="audioProgressBar" class="bg-teal-500 h-2.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+                    <p id="audioProgressText" class="text-xs text-teal-400 text-center mt-1">Generating Script...</p>
+                </div>
+
+                <audio id="audioPlayer" controls class="w-full hidden"></audio>
+                <!-- Hidden Script Debugger -->
+                <textarea id="debugScriptBox" class="w-full h-20 bg-black/50 text-xs text-gray-500 mt-2 rounded hidden" readonly></textarea>
+            </div>
+
+            <!-- Follow Up (MOVED TO TOP) -->
+            <div class="mb-8 p-6 bg-slate-800/30 rounded-lg border border-slate-700">
+                <h3 class="text-lg font-bold text-white mb-2">Interactive Discussion</h3>
+                <form id="followUpForm" class="flex gap-2">
+                    <input type="text" id="followUpInput" class="flex-1 bg-slate-800 border border-slate-600 rounded-lg p-3 text-white focus:border-orange-500 outline-none" placeholder="Ask Dr. Holtkamp a follow-up...">
+                    <button type="submit" class="bg-orange-600 hover:bg-orange-500 text-white px-6 rounded-lg font-bold">Ask</button>
+                </form>
+                <div id="followUpResult" class="mt-4 p-4 bg-slate-800/50 rounded-lg border-l-4 border-orange-500 hidden prose prose-invert max-w-none"></div>
+            </div>
+
+            <!-- Content Tabs -->
+            <div class="mb-4 border-b border-gray-700 flex gap-6 overflow-x-auto">
+                <button class="tab-btn active text-orange-500 border-b-2 border-orange-500 pb-2 px-1 font-bold" data-target="summary">Journal Club</button>
+                <button class="tab-btn text-gray-400 hover:text-white pb-2 px-1 font-medium" data-target="plan">Treatment & Plan</button>
+                <button class="tab-btn text-gray-400 hover:text-white pb-2 px-1 font-medium" data-target="refs">References</button>
+            </div>
+
+            <!-- Content Areas -->
+            <div id="summaryContent" class="tab-content prose prose-invert max-w-none text-gray-300"></div>
+            <div id="planContent" class="tab-content hidden prose prose-invert max-w-none text-gray-300"></div>
+            <div id="refsContent" class="tab-content hidden font-mono text-sm bg-black/30 p-4 rounded text-gray-400 whitespace-pre-wrap"></div>
+
+        </div>
+
+    </main>
+
+    <!-- PCM to WAV Library (Inlined for single file portability) -->
+    <script>
+    !function(e,t){"object"==typeof exports&&"object"==typeof module?module.exports=t():"function"==typeof define&&define.amd?define([],t):"object"==typeof exports?exports.pcmToWav=t():e.pcmToWav=t()}(window,function(){return function(e){var t={};function r(n){if(t[n])return t[n].exports;var o=t[n]={i:n,l:!1,exports:{}};return e[n].call(o.exports,o,o.exports,r),o.l=!0,o.exports}return r.m=e,r.c=t,r.d=function(e,t,n){r.o(e,t)||Object.defineProperty(e,t,{enumerable:!0,get:n})},r.r=function(e){"undefined"!=typeof Symbol&&Symbol.toStringTag&&Object.defineProperty(e,Symbol.toStringTag,{value:"Module"}),Object.defineProperty(e,"__esModule",{value:!0})},r.t=function(e,t){if(1&t&&(e=r(e)),8&t)return e;if(4&t&&"object"==typeof e&&e&&e.__esModule)return e;var n=Object.create(null);if(r.r(n),Object.defineProperty(n,"default",{enumerable:!0,value:e}),2&t&&"string"!=typeof e)for(var o in e)r.d(n,o,function(t){return e[t]}.bind(null,o));return n},r.n=function(e){var t=e&&e.__esModule?function(){return e.default}:function(){return e};return r.d(t,"a",t),t},r.o=function(e,t){return Object.prototype.hasOwnProperty.call(e,t)},r.p="",r(r.s=0)}([function(e,t,r){"use strict";Object.defineProperty(t,"__esModule",{value:!0}),t.default=function(e,t,r){var n,o,a,i,f,c,u,d=new DataView(new ArrayBuffer(44+e.length*t*2));return d.setUint32(0,1380533830,!1),d.setUint32(4,36+e.length*t*2,!0),d.setUint32(8,1463899717,!1),d.setUint32(12,1718449184,!1),d.setUint32(16,16,!0),d.setUint16(20,1,!0),n=t,d.setUint16(22,n,!0),o=r,d.setUint32(24,o,!0),a=r*t*2,d.setUint32(28,a,!0),i=2*t,d.setUint16(32,i,!0),f=16,d.setUint16(34,f,!0),d.setUint32(36,1684108385,!1),c=e.length*t*2,d.setUint32(40,c,!0),u=new Uint8Array(d.buffer,44),e.forEach(function(e,t){var r=44+2*t;d.setInt16(r,e,!0)}),new Blob([d.buffer],{type:"audio/wav"})},e.exports=t.default}])});
+    </script>
+
+    <!-- Main Logic -->
+    <script>
+        // API Configuration
+        const apiKey = "AIzaSyD2CAh8chhZkxqQnwuRa2WOMBF3ESYH6yk";
+        const GENERATE_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+        const TTS_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`;
+
+        // DOM Elements
+        const el = id => document.getElementById(id);
+        const queryForm = el('queryForm');
+        const refineForm = el('refinementForm');
+        const loader = el('loader');
+        const results = el('results');
+        const dynamicInputs = el('dynamicInputs');
+        const followUpForm = el('followUpForm');
+        const progressBar = el('audioProgressBar');
+        const progressContainer = el('audioProgressContainer');
+        const progressText = el('audioProgressText');
+        const debugScriptBox = el('debugScriptBox');
+        
+        let storedSummary = "";
+        let storedContext = "";
+
+        // Core Fetch Function
+        async function fetchAPI(url, payload) {
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
                 });
-            });
+
+                if (response.status === 401) {
+                    throw new Error("Authentication Failed (401). API Key is missing or invalid.");
+                }
+
+                if (!response.ok) {
+                    const text = await response.text();
+                    let errorMsg = `API Error: ${response.status}`;
+                    try {
+                        const json = JSON.parse(text);
+                        if(json.error && json.error.message) errorMsg += ` - ${json.error.message}`;
+                    } catch(e) {
+                        if(text.length < 200) errorMsg += ` - ${text}`;
+                    }
+                    throw new Error(errorMsg);
+                }
+                return await response.json();
+            } catch (error) {
+                console.error("Fetch API failed:", error);
+                throw error;
+            }
+        }
+        
+        // --- Robust Cleaner for LaTeX Artifacts ---
+        function stripLatex(text) {
+            if (!text) return "";
+            return text
+                .replace(/\$([^$]+)\$/g, '$1')
+                .replace(/\\text\s*\{([^}]+)\}/g, '$1')
+                .replace(/\\geq/g, '≥')
+                .replace(/\\leq/g, '≤')
+                .replace(/\\approx/g, '≈')
+                .replace(/\\pm/g, '±')
+                .replace(/\\rightarrow/g, '→')
+                .replace(/\\times/g, 'x')
+                .replace(/\\cdot/g, '·')
+                .replace(/\\%/g, '%')
+                .replace(/\\([a-zA-Z]+)/g, ' $1 ')
+                .trim();
+        }
+
+        // --- Navigation Logic ---
+        el('btnBackToStep1').addEventListener('click', () => {
+            el('step2').classList.add('hidden');
+            el('step1').classList.remove('hidden');
+        });
+
+        el('btnBackToRefine').addEventListener('click', () => {
+            el('results').classList.add('hidden');
+            el('step2').classList.remove('hidden');
+        });
+
+        el('btnNewTopic').addEventListener('click', () => {
+             if(confirm("Start a new topic? This will clear current results.")) {
+                 location.reload();
+             }
         });
 
 
-        // --- Core Functions ---
-        
-        /**
-         * Generic function to make API calls with exponential backoff.
-         */
-        async function fetchWithRetry(url, payload, maxRetries = 3) {
-            let attempt = 0;
-            while (attempt < maxRetries) {
-                try {
-                    const response = await fetch(url, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
-
-                    if (response.status === 429 || response.status === 503) { // Throttling or Overloaded
-                        const delay = Math.pow(2, attempt) * 1000 + Math.random() * 1000;
-                        await new Promise(res => setTimeout(res, delay));
-                        attempt++;
-                        continue;
-                    }
-
-                    if (!response.ok) {
-                        const errorBody = await response.json(); // Try to parse JSON error
-                        console.error("API Error Body:", errorBody);
-                        const errorMsg = errorBody?.error?.message || `API Error: ${response.status} ${response.statusText}`;
-                        // Specific check for 503 in error body
-                        if (errorBody?.error?.status === "UNAVAILABLE" || response.status === 503) {
-                           throw new Error("The AI model is currently overloaded (503). Please try again in a moment.");
-                        }
-                        throw new Error(errorMsg);
-                    }
-                    
-                    return await response.json();
-
-                } catch (error) {
-                    attempt++;
-                    if (attempt >= maxRetries) {
-                         // If it's the specific 503 message, just re-throw it
-                        if (error.message.includes("503")) {
-                            throw error;
-                        }
-                        // Otherwise, throw a generic retry-failed error
-                        throw new Error(`API call failed after ${maxRetries} attempts: ${error.message}`);
-                    }
-                }
-            }
-        }
-
-
-        /**
-         * 1. Handles the INITIAL form submission (Step 1)
-         */
-        async function handleInitialSubmit(e) {
+        // STEP 1: Handle Initial Query
+        queryForm.addEventListener('submit', async (e) => {
             e.preventDefault();
+            const topic = el('initialQuestion').value;
             
-            // API key check removed. The environment will provide the key.
-            
-            // 1. Get user input
-            const initialQuestion = initialQuestionInput.value;
-            if (!initialQuestion) return;
+            showLoader("Consulting Research Database...");
+            el('step1').classList.add('hidden');
 
-            // 2. Construct the "Refinement" prompt
-            const refinementPrompt = `
-                You are a medical research assistant. Based on the user's topic: "${initialQuestion}", generate exactly 5 specific, high-yield follow-up questions to help them narrow their focus for a literature review. These questions will be used as labels for free-text input fields.
-                
-                Provide your response as a list of questions, each on a new line, prefixed with "Q:".
-                Make them sound like PICO categories.
-                
-                Example:
-                Q: What is the specific Patient Population or Problem (P)?
-                Q: What is the Intervention being studied (I)?
-                Q: What is the Comparison or Control group (C)?
-                Q: What are the primary Outcome(s) of interest (O)?
-                Q: What Study Types or Timeframe should be prioritized?
+            const prompt = `
+                Topic: "${topic}"
+                Role: Medical Research Librarian.
+                Task: Generate 5 specific *clarifying* questions to help the user narrow their search scope (PICO elements).
+                CRITICAL INSTRUCTION: Do NOT ask knowledge questions. Ask choice-based questions (e.g. "Pediatric or Adult?").
+                Output: A simple list of questions, one per line.
             `;
 
-            // 3. Show loader and hide old results/questions
-            loaderText.innerText = "Generating refinement questions...";
-            loader.style.display = 'block';
-            results.classList.add('hidden');
-            audioPlayer.classList.add('hidden'); // Hide old audio player
-            if (currentAudioUrl) {
-                URL.revokeObjectURL(currentAudioUrl); // Revoke old audio URL
-                currentAudioUrl = null;
-            }
-            refinementForm.classList.add('hidden');
-            refineButton.disabled = true;
-            
-            // --- Hide follow-up results from previous query ---
-            followUpResult.classList.add('hidden');
-            followUpResult.innerText = '';
-            
-            // 4. Call the API (no search tool needed for this step)
             try {
-                const payload = {
-                    "contents": [{ "parts": [{ "text": refinementPrompt }] }]
-                };
-
-                const apiData = await fetchWithRetry(GENERATE_API_URL, payload);
-                
-                const candidate = apiData.candidates?.[0];
-                if (!candidate || !candidate.content?.parts?.[0]?.text) {
-                    throw new Error("Invalid API response structure for refinement.");
-                }
-
-                const rawText = candidate.content.parts[0].text;
-                // Parse the text response
-                const questions = rawText.split('\n')
-                                         .filter(line => line.startsWith('Q:'))
-                                         .map(line => line.substring(3).trim());
-                
-                if (questions.length === 0) {
-                    // Fallback in case the model doesn't follow the 'Q:' prefix
-                    const fallbackQuestions = rawText.split('\n').filter(line => line.trim().length > 0 && line.includes('?'));
-                    if (fallbackQuestions.length > 0) {
-                        displayRefinementForm(fallbackQuestions);
-                    } else {
-                        // Hardcoded fallback if AI fails
-                        const defaultQuestions = [
-                            "What is the specific Patient Population or Problem (P)?",
-                            "What is the Intervention being studied (I)?",
-                            "What is the Comparison or Control group (C)?",
-                            "What are the primary Outcome(s) of interest (O)?",
-                            "What Study Types or Timeframe should be prioritized?"
-                        ];
-                        displayRefinementForm(defaultQuestions);
-                    }
-                } else {
-                    displayRefinementForm(questions);
-                }
-
-            } catch (error) {
-                console.error('Error fetching refinement questions:', error);
-                loaderText.innerText = `Error: ${error.message}. Please check your API key and console.`;
-            } finally {
-                refineButton.disabled = false;
-                // Keep loader hidden, it's handled by displayRefinementForm
-            }
-        }
-        
-        /**
-         * 2. Displays the 5 refinement questions as free-text inputs (Step 2)
-         */
-        function displayRefinementForm(questions) {
-            dynamicFormContainer.innerHTML = ''; // Clear old form
-            
-            if (!questions || questions.length === 0) {
-                dynamicFormContainer.innerHTML = '<p>Could not generate follow-up questions. Please try again.</p>';
-            } else {
-                questions.forEach((question, index) => {
-                    const formGroup = document.createElement('div');
-                    formGroup.className = 'form-group';
-                    
-                    const label = document.createElement('label');
-                    label.setAttribute('for', `refinement_input_${index}`);
-                    label.innerText = question;
-                    
-                    const input = document.createElement('input');
-                    input.type = 'text';
-                    input.id = `refinement_input_${index}`;
-                    input.className = 'refinement-input';
-                    
-                    formGroup.appendChild(label);
-                    formGroup.appendChild(input);
-                    dynamicFormContainer.appendChild(formGroup);
+                const data = await fetchAPI(GENERATE_URL, {
+                    contents: [{ parts: [{ text: prompt }] }]
                 });
+                
+                const text = data.candidates[0].content.parts[0].text;
+                const questions = text.split('\n').filter(line => line.trim().length > 5).slice(0, 5);
+                
+                dynamicInputs.innerHTML = '';
+                questions.forEach((q, idx) => {
+                    dynamicInputs.innerHTML += `
+                        <div>
+                            <label class="block text-sm text-gray-400 mb-1">${q.replace(/^[Q\-*0-9: ]+/, '')}</label>
+                            <input type="text" name="q${idx}" class="w-full bg-slate-800 border border-slate-600 rounded p-3 text-white focus:border-orange-500" placeholder="Enter details...">
+                        </div>
+                    `;
+                });
+
+                hideLoader();
+                el('step2').classList.remove('hidden');
+            } catch (err) {
+                alert("Error generating questions. " + err.message);
+                el('step1').classList.remove('hidden');
+                hideLoader();
             }
+        });
 
-            loader.style.display = 'none';
-            refinementForm.classList.remove('hidden');
-        }
-
-        /**
-         * 3. Handles the click on the "Generate Summary" button (Step 3)
-         */
-        async function handleSummaryFormSubmit(e) {
+        // STEP 2: Generate Content
+        refineForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            
-            // 1. Gather all the data from the dynamic form
-            const inputs = dynamicFormContainer.querySelectorAll('.refinement-input');
-            const labels = dynamicFormContainer.querySelectorAll('label');
-            let structuredQuery = "";
-            
-            labels.forEach((label, index) => {
-                const question = label.innerText;
-                const answer = inputs[index].value;
-                if (answer.trim() !== "") { // Only include non-empty fields
-                    structuredQuery += `- ${question}: ${answer}\n`;
-                }
-            });
+            const topic = el('initialQuestion').value;
+            const details = Array.from(dynamicInputs.querySelectorAll('input')).map(i => `${i.previousElementSibling.innerText}: ${i.value}`).join('\n');
 
-            if (structuredQuery === "") {
-                showMessage("Please fill out at least one refinement field.");
-                return;
-            }
+            showLoader("Synthesizing Journal Club: Finding 2 Landmark & 2 Recent Trials...");
+            el('step2').classList.add('hidden');
 
-            const initialTopic = initialQuestionInput.value;
-            
-            // 2. Construct the main prompt using the structured query
-            //    UPDATED to ask for all 3 sections
             const mainPrompt = `
-                You are an expert medical researcher and synthesizer. Your task is to perform a literature review based on an initial topic and the user's refined parameters.
+                Role: Dr. Matthew Holtkamp (Expert Medical Educator).
+                Task: Create a Journal Club analysis for: "${topic}".
+                Context: ${details}
                 
-                **Initial Topic:**
-                ${initialTopic}
+                MANDATORY STRUCTURE:
+                1. Identify EXACTLY 4 Key Trials:
+                   - Trial 1 & 2: The Two Historical Landmark Trials.
+                   - Trial 3 & 4: The Two Most Important Recent/Emerging Trials (Last 5 years preferrable).
                 
-                **Refined Parameters:**
-                ${structuredQuery}
+                2. Use Google Search to find real citations and DATES.
                 
-                **Instructions:**
-                1.  Synthesize the user's parameters to answer their implied clinical question.
-                2.  You **MUST** use the Google Search tool to find relevant, up-to-date and reputable sources that match the user's parameters.
-                3.  Prioritize guidelines from professional societies (AHA, ASA, SCCM) and high-impact journals (NEJM, JAMA, The Lancet, PubMed).
-                4.  **FORMATTING:** The output must be plain text. Do not use any bolding, italics, markdown, tables, or other special styling. Use standard paragraphs.
-                5.  **CITATIONS (CRITICAL):** You MUST cite your sources within the text using numbered brackets, e.g., [1], [2], [3].
+                OUTPUT FORMAT (Use Markdown). You MUST use the separators |||SECTION_PLAN||| and |||SECTION_REFS||| exactly as written below.
                 
-                **Output Format (MANDATORY):**
+                # Journal Club Summary
                 
-                FIRST, provide the complete "Journal Club" summary. This summary **must include in-text citations** [1] that correspond to the reference list. It must include these subheadings:
-                Introduction and Background
-                Key Studies and Methodology
-                Key Findings
-                Discussion and Clinical Bottom Line
+                ## Introduction
+                Brief clinical context.
                 
-                SECOND, insert the exact delimiter "---TREATMENT_PLAN---".
+                ## Landmark Trial 1: [Trial Name/Acronym]
+                * **Year of Publication:** [YYYY]
+                * **Design/PICO:**
+                * **Results:**
+                * **Limitations:**
+                * **Link:** [Click to Search](https://www.google.com/search?q=[Trial Name]+[Year])
                 
-                THIRD, provide a "Treatment and Plan" section. This plan **must also include in-text citations** [1], [2] corresponding to the reference list. This must be an evidence-based, stepwise medical workup and a stepwise treatment plan. Use simple numbered lists or paragraphs.
+                ## Landmark Trial 2: [Trial Name/Acronym]
+                * **Year of Publication:** [YYYY]
+                * **Design/PICO:**
+                * **Results:**
+                * **Limitations:**
+                * **Link:** [Click to Search](https://www.google.com/search?q=[Trial Name]+[Year])
                 
-                FOURTH, insert the exact delimiter "---APA_REFERENCES---".
+                ## Recent Major Trial 1: [Trial Name]
+                * **Year of Publication:** [YYYY]
+                * **Why it matters:**
+                * **Key Findings:**
+                * **Link:** [Click to Search](https://www.google.com/search?q=[Trial Name]+[Year])
                 
-                FIFTH, provide the complete list of all cited articles. This list **MUST be numbered** (e.g., "1. Author, A..."), and the numbers must match the in-text citations. Format them in APA 7th edition style.
+                ## Recent Major Trial 2: [Trial Name]
+                * **Year of Publication:** [YYYY]
+                * **Why it matters:**
+                * **Key Findings:**
+                * **Link:** [Click to Search](https://www.google.com/search?q=[Trial Name]+[Year])
+                
+                ## Dr. Holtkamp's Clinical Pearls
+                * [Pearl 1]
+                * [Pearl 2]
+                * [Pearl 3]
+
+                |||SECTION_PLAN|||
+                
+                # Treatment & Plan
+                Based on the evidence above, provide a stepwise clinical plan.
+                1. **Initial Workup:**
+                2. **First-Line Therapy:**
+                3. **Escalation/Refractory Management:**
+                
+                |||SECTION_REFS|||
+                
+                [Full APA Citations List]
+                
+                CLEANLINESS INSTRUCTION: DO NOT use LaTeX syntax. Use simple UTF-8 symbols.
             `;
 
-            // 3. Show loader and hide refinement form
-            loaderText.innerText = "Synthesizing medical literature...";
-            loader.style.display = 'block';
-            results.classList.add('hidden');
-            audioPlayer.classList.add('hidden'); // Hide old audio player
-            if (currentAudioUrl) {
-                URL.revokeObjectURL(currentAudioUrl); // Revoke old audio URL
-                currentAudioUrl = null;
-            }
-            refinementForm.classList.add('hidden');
-            refineButton.disabled = true; 
-            generateButton.disabled = true;
-
-            // --- Hide follow-up results from previous query ---
-            followUpResult.classList.add('hidden');
-            followUpResult.innerText = '';
-
-            // 4. Call the API (WITH search tool)
             try {
-                const payload = {
-                    "contents": [{ "parts": [{ "text": mainPrompt }] }],
-                    "tools": [{ "google_search": {} }] // This enables the search tool
-                };
-
-                const apiData = await fetchWithRetry(GENERATE_API_URL, payload);
-                
-                const candidate = apiData.candidates?.[0];
-                if (!candidate || !candidate.content?.parts?.[0]?.text) {
-                    throw new Error("Invalid API response structure or empty response from model.");
-                }
-
-                // Extract the raw text and parse it based on our custom delimiters
-                const rawText = candidate.content.parts[0].text;
-                
-                const planSplit = rawText.split('---TREATMENT_PLAN---');
-                const summary = planSplit[0]?.trim() || "";
-                
-                const refSplit = (planSplit[1] || "").split('---APA_REFERENCES---');
-                const plan = refSplit[0]?.trim() || "";
-                const refs = refSplit[1]?.trim() || "";
-                
-                let parsedData = {};
-                
-                if (!summary || (!plan && !refs)) {
-                     // Model failed to follow instructions, just show the raw text as summary
-                    console.error("Response format error: Could not find delimiters.");
-                    parsedData = {
-                        journalClubSummary: rawText.trim(),
-                        treatmentPlan: "Could not parse treatment plan from response.",
-                        apaReferences: "Could not parse references from response. See summary for details."
-                    };
-                } else if (!plan || !refs) {
-                    // Model returned summary but failed on one of the others
-                    console.error("Response format error: Missing plan or references delimiter.");
-                    // Check if it missed the plan but got the refs
-                    const recoveryRefSplit = rawText.split('---APA_REFERENCES---');
-                    if (recoveryRefSplit.length > 1) {
-                        parsedData = {
-                            journalClubSummary: recoveryRefSplit[0].trim(),
-                            treatmentPlan: "Could not parse treatment plan from response.",
-                            apaReferences: recoveryRefSplit[1].trim()
-                        };
-                    } else {
-                        parsedData = {
-                            journalClubSummary: summary,
-                            treatmentPlan: plan || "Could not parse treatment plan from response.",
-                            apaReferences: "Could not parse references from response."
-                        };
-                    }
-                } else {
-                    // Successful parse
-                    parsedData = {
-                        journalClubSummary: summary,
-                        treatmentPlan: plan,
-                        apaReferences: refs
-                    };
-                }
-                
-                // Get source citations (grounding metadata)
-                let citations = [];
-                const groundingMetadata = candidate.groundingMetadata;
-                if (groundingMetadata && groundingMetadata.groundingAttributions) {
-                    citations = groundingMetadata.groundingAttributions
-                        .map(attr => ({
-                            uri: attr.web?.uri,
-                            title: attr.web?.title,
-                        }))
-                        .filter(source => source.uri && source.title);
-                }
-                
-                displayResults(parsedData, citations);
-
-
-            } catch (error)
-            {
-                console.error('Error fetching summary:', error);
-                // Check for the specific 503 error message
-                if (error.message.includes("503")) {
-                    loaderText.innerText = error.message; // Show the user-friendly 503 message
-                } else {
-                    loaderText.innerText = `Error: ${error.message}. Please check your API key and console.`;
-                }
-            } 
-            finally 
-            {
-                refineButton.disabled = false; // Re-enable main button
-                generateButton.disabled = false; // Re-enable summary button
-            }
-        }
-
-        /**
-         * 4. Displays the final results from the API call (Step 4)
-         */
-        function displayResults(data, citations) {
-            // 1. Store and populate text
-            currentSummary = data.journalClubSummary; // Only store the summary for audio/key points
-            summaryContent.innerText = data.journalClubSummary;
-            planContent.innerText = data.treatmentPlan; // NEW: Populate plan
-            referencesContent.innerText = data.apaReferences;
-
-            // This is the key part for MathJax:
-            // After setting the text, we need to tell MathJax to look for and typeset any new math.
-            if (window.MathJax) {
-                // Tell MathJax to typeset all three content areas
-                window.MathJax.typesetPromise([summaryContent, planContent])
-                    .catch((err) => console.log('MathJax Typeset Error: ', err));
-            }
-
-
-            // 2. Populate sources
-            sourcesContent.innerHTML = ''; // Clear old sources
-            if (citations && citations.length > 0) {
-                const list = document.createElement('ul');
-                citations.forEach(source => {
-                    const item = document.createElement('li');
-                    const link = document.createElement('a');
-                    link.href = source.uri;
-                    link.textContent = source.title || source.uri;
-                    link.target = "_blank"; // Open in new tab
-                    item.appendChild(link);
-                    list.appendChild(item);
+                const data = await fetchAPI(GENERATE_URL, {
+                    contents: [{ parts: [{ text: mainPrompt }] }],
+                    tools: [{ google_search: {} }]
                 });
-                sourcesContent.appendChild(list);
-            } else {
-                sourcesContent.innerHTML = '<p>No direct source URLs were returned by the API for this query.</p>';
+
+                const rawText = data.candidates[0].content.parts[0].text;
+                storedContext = rawText; 
+
+                const split1 = rawText.split('|||SECTION_PLAN|||');
+                storedSummary = split1[0];
+                let remaining = split1[1] || "";
+                
+                const split2 = remaining.split('|||SECTION_REFS|||');
+                const planText = split2[0] || "No plan generated. Try refining.";
+                const refsText = split2[1] || "No references generated.";
+
+                el('summaryContent').innerHTML = marked.parse(stripLatex(storedSummary));
+                el('planContent').innerHTML = marked.parse(stripLatex(planText));
+                el('refsContent').innerText = stripLatex(refsText).trim();
+
+                MathJax.typesetPromise();
+                hideLoader();
+                el('results').classList.remove('hidden');
+
+            } catch (err) {
+                alert("Error synthesizing data. " + err.message);
+                el('step2').classList.remove('hidden');
+                hideLoader();
             }
+        });
+
+        // TABS Logic
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(b => {
+                    b.classList.remove('text-orange-500', 'border-b-2', 'border-orange-500', 'active');
+                    b.classList.add('text-gray-400');
+                });
+                btn.classList.add('text-orange-500', 'border-b-2', 'border-orange-500', 'active');
+                btn.classList.remove('text-gray-400');
+
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+                const target = btn.dataset.target;
+                if(target === 'summary') el('summaryContent').classList.remove('hidden');
+                if(target === 'plan') el('planContent').classList.remove('hidden');
+                if(target === 'refs') el('refsContent').classList.remove('hidden');
+            });
+        });
+
+        // REFACTORED AUDIO GENERATION - MATCHING WORKING SNIPPET STRUCTURE
+        el('btnAudio').addEventListener('click', async () => {
+            const btn = el('btnAudio');
+            btn.disabled = true;
             
-            // 3. Hide loader and show results
-            loader.style.display = 'none';
-            results.classList.remove('hidden');
+            // Declare intervals outside try block so they can be cleared in catch
+            let scriptInterval, audioInterval;
 
-            // 4. Reset to the first tab
-            tabLinks.forEach(l => l.classList.remove('active'));
-            tabContents.forEach(c => c.classList.add('hidden'));
-            document.querySelector('.tab-link[data-tab="summary"]').classList.add('active');
-            document.getElementById('summary').classList.remove('hidden');
-        }
-
-        /**
-         * 5. Handles the "Download Key Points" button click.
-         */
-        async function handleDownloadKeyPoints() {
-            if (!currentSummary) return;
-
-            loaderText.innerText = "Generating key points...";
-            loader.style.display = 'block';
-            btnKeyPoints.disabled = true;
-
-            const keyPointsPrompt = `
-                You are a medical educator. Convert the following journal club summary into a concise, 'high-yield' bulleted list of key takeaways for a busy clinician.
-                Focus on the clinical bottom line and actionable points. 
-                **FORMATTING:** Do not use markdown, bolding, or any other styling for the output. Just plain text bullet points (using a hyphen - or asterisk *).
-                
-                SUMMARY:
-                ---
-                ${currentSummary}
-                ---
-            `;
+            // Show Container & Reset Progress
+            el('audioContainer').classList.remove('hidden');
+            progressContainer.classList.remove('hidden');
+            progressBar.style.width = '0%';
             
-            try {
-                const payload = {
-                    "contents": [{ "parts": [{ "text": keyPointsPrompt }] }]
-                };
-                
-                const apiData = await fetchWithRetry(GENERATE_API_URL, payload);
-
-                const candidate = apiData.candidates?.[0];
-                if (!candidate || !candidate.content?.parts?.[0]?.text) {
-                    throw new Error("Invalid API response structure or empty response from model.");
-                }
-
-                const keyPointsText = candidate.content.parts[0].text;
-                
-                downloadAsFile('key_points.txt', new Blob([keyPointsText], { type: 'text/plain' }));
-
-            } catch (error) {
-                console.error('Error generating key points:', error);
-                showMessage(`Error generating key points: ${error.message}`);
-            } finally {
-                loader.style.display = 'none';
-                btnKeyPoints.disabled = false;
-            }
-        }
-
-        /**
-         * 6. Handles "Generate Audio" button.
-         */
-        async function handleDownloadAudio() {
-            if (!currentSummary) return;
-
-            loaderText.innerText = "Generating 5-7 minute lecture script...";
-            loader.style.display = 'block';
-            btnAudio.disabled = true;
-            
-            // 1. Clean the summary text for both prompts
-            let plainTextSummary = currentSummary;
-            // Simple regex to strip TeX-like commands
-            plainTextSummary = plainTextSummary.replace(/\\\[.*?\\\]/g, ' '); // block math
-            plainTextSummary = plainTextSummary.replace(/\\\(.*?\\\)/g, ' '); // inline math
-            plainTextSummary = plainTextSummary.replace(/\$.*?\$/g, ' '); // dollar sign math
-            plainTextSummary = plainTextSummary.replace(/\\(approx|geq|leq|pm|times|cdot|etc)/g, ' '); // common symbols
-            plainTextSummary = plainTextSummary.replace(/\{|\}/g, ' '); // curly braces
-            plainTextSummary = plainTextSummary.replace(/\s\s+/g, ' '); // clean up extra whitespace
-
-            
-            // 2. First API Call: Generate the 5-7 minute lecture script
-            const lectureScriptPrompt = `
-                You are a medical lecturer. Take the following journal club summary and expand it into a 5 to 7 minute audio lecture script (approximately 800-1000 words).
-                Introduce the topic, explain the key studies and findings in detail, and conclude with the clinical bottom line. 
-                Write in a clear, spoken, and professional style. Do not use any markdown or special formatting. Just plain text.
-                
-                SUMMARY:
-                ---
-                ${plainTextSummary}
-                ---
-            `;
+            // Step 1: Script Generation
+            progressText.innerText = "Step 1: Writing Dr. Holtkamp's Script...";
+            progressBar.style.width = '20%';
 
             try {
-                const lecturePayload = {
-                    "contents": [{ "parts": [{ "text": lectureScriptPrompt }] }]
-                };
-                
-                const lectureApiData = await fetchWithRetry(GENERATE_API_URL, lecturePayload);
-                
-                const lectureCandidate = lectureApiData.candidates?.[0];
-                if (!lectureCandidate || !lectureCandidate.content?.parts?.[0]?.text) {
-                    throw new Error("Failed to generate lecture script.");
-                }
-                const lectureScript = lectureCandidate.content.parts[0].text;
+                // SCRIPT GENERATION
+                // Using 6000 char context to generate a robust script
+                let plainTextSummary = storedSummary.replace(/\\\[.*?\\\]/g, ' ').replace(/\$.*?\$/g, ' '); 
 
-                // 3. Second API Call: Convert the lecture script to speech
-                loaderText.innerText = "Generating audio file... This may take a moment.";
+                const lectureScriptPrompt = `
+                    You are Dr. Matthew Holtkamp. Write a 5-minute audio script summarizing the following medical trials.
+                    Tone: Fun, Professional, Authoritative.
+                    Structure: Intro, 2 Landmark Trials, 2 Recent Trials, Conclusion/Pearls.
+                    Length: detailed and comprehensive. Aim for roughly 800 words.
+                    
+                    TEXT TO ADAPT:
+                    ${plainTextSummary.substring(0, 6000)}
+                `;
+
+                const scriptData = await fetchAPI(GENERATE_URL, {
+                    contents: [{ parts: [{ text: lectureScriptPrompt }] }]
+                });
                 
-                // Polished intro
-                // UPDATED: Added pronunciation guidance
-                const ttsPrompt = `Say in a clear, professional, and knowledgeable tone. Pay special attention to the correct pronunciation of all medical and pharmacological terms: This presentation is brought to you by Dr. Matthew Holtkamp.${lectureScript}`;
+                let lectureScript = scriptData.candidates[0].content.parts[0].text;
+                
+                // Stop script interval
+                clearInterval(scriptInterval);
+                progress = 25;
+                progressBar.style.width = '25%';
+
+                // Step 2: Audio Synthesis
+                progressText.innerText = "Step 2: Synthesizing Audio (Est. wait: ~2-3 mins)...";
+                
+                // Polished intro wrapping, exactly as requested from working code logic
+                const ttsPrompt = `Say in a clear, professional, and knowledgeable tone. Pay special attention to the correct pronunciation of all medical terms: This presentation is brought to you by Dr. Matthew Holtkamp. ${lectureScript}`;
+
+                // Truncate to safety limit
+                const safeText = ttsPrompt.substring(0, 4000); // 4000 chars is safe limit for single request
 
                 const ttsPayload = {
-                    "contents": [{ "parts": [{ "text": ttsPrompt }] }],
+                    "contents": [{ "parts": [{ "text": safeText }] }],
                     "generationConfig": {
                         "responseModalities": ["AUDIO"],
                         "speechConfig": {
-                            // UPDATED: Changed voice from Charon to Sadaltager (Knowledgeable)
                             "voiceConfig": { "prebuiltVoiceConfig": { "voiceName": "Sadaltager" } }
                         }
                     },
                     "model": "gemini-2.5-flash-preview-tts"
                 };
 
-                const ttsApiData = await fetchWithRetry(TTS_API_URL, ttsPayload);
-
-                const part = ttsApiData.candidates?.[0]?.content?.parts?.[0];
-                const audioData = part?.inlineData?.data;
-                const mimeType = part?.inlineData?.mimeType;
-
-                if (!audioData || !mimeType || !mimeType.startsWith("audio/L16")) {
-                    throw new Error("Invalid audio data received from API.");
+                // Create a slow crawl for the heavy lifting
+                let progressVal = 25;
+                audioInterval = setInterval(() => {
+                    if (progressVal < 90) {
+                        progressVal += 0.5; 
+                        progressBar.style.width = `${progressVal}%`;
+                    }
+                }, 500); 
+                
+                // TTS CALL - NO SAFETY SETTINGS
+                const ttsData = await fetchAPI(TTS_URL, ttsPayload);
+                
+                if (!ttsData.candidates || !ttsData.candidates[0]) {
+                     throw new Error("TTS API returned no candidates.");
                 }
 
-                const sampleRateMatch = mimeType.match(/rate=(\d+)/);
-                const sampleRate = sampleRateMatch ? parseInt(sampleRateMatch[1], 10) : 24000; // Default to 24kHz if not specified
-
-                const pcmData = base64ToArrayBuffer(audioData);
-                const pcm16 = new Int16Array(pcmData);
-                
-                if (typeof window.pcmToWav !== 'function') {
-                    throw new Error("Audio conversion library (pcmToWaw) failed to load.");
+                const audioData = ttsData.candidates[0].content.parts[0].inlineData.data;
+                const binaryString = atob(audioData);
+                const len = binaryString.length;
+                const bytes = new Uint8Array(len);
+                for (let i = 0; i < len; i++) {
+                    bytes[i] = binaryString.charCodeAt(i);
                 }
                 
-                const wavBlob = window.pcmToWav(pcm16, 1, sampleRate); // 1 channel, specified sample rate
-                
-                // 4. Set up the audio player
-                if (currentAudioUrl) {
-                    URL.revokeObjectURL(currentAudioUrl); // Revoke the old URL if it exists
-                }
-                currentAudioUrl = URL.createObjectURL(wavBlob);
-                audioPlayer.src = currentAudioUrl;
-                audioPlayer.classList.remove('hidden');
-                audioPlayer.load();
-                
-                // 5. Trigger the download
-                downloadAsFile('audio_lecture.wav', wavBlob);
-                
-                showMessage("Audio lecture generated and download started.");
+                // Convert PCM to WAV conversion using the inline library
+                const pcm16 = new Int16Array(bytes.buffer);
+                const wavBlob = pcmToWav(pcm16, 1, 24000); 
+                const audioUrl = URL.createObjectURL(wavBlob);
 
-            } catch (error) {
-                console.error('Error generating audio:', error);
-                showMessage(`Error generating audio: ${error.message}`);
-            } finally {
-                loader.style.display = 'none';
-                btnAudio.disabled = false;
-            }
-        }
-
-        /**
-         * 7. Utility function to copy text to the clipboard.
-         */
-        async function copyToClipboard(elementId, item) {
-            
-            const element = document.getElementById(elementId);
-            if (!element) {
-                console.error(`Element with ID "${elementId}" not found for copying.`);
-                showMessage(`Error: Could not find content to copy.`);
-                return;
-            }
-
-            // Get the rendered text. This works because MathJax replaces the content.
-            let cleanText = element.innerText; 
-
-            // Using document.execCommand as a fallback for iframe/secure context issues
-            try {
-                const textArea = document.createElement("textarea");
-                textArea.value = cleanText;
-                textArea.style.position = "fixed";  // Avoid scrolling to bottom
-                textArea.style.opacity = "0";
-                document.body.appendChild(textArea);
-                textArea.focus();
-                textArea.select();
+                const player = el('audioPlayer');
+                player.src = audioUrl;
                 
-                const successful = document.execCommand('copy');
-                if (successful) {
-                    showMessage(`${item} copied to clipboard!`);
-                } else {
-                    throw new Error('execCommand failed');
-                }
+                // Finish Progress
+                clearInterval(audioInterval);
+                progressBar.style.width = '100%';
+                progressText.innerText = "Audio Ready!";
+                
+                setTimeout(() => {
+                    progressContainer.classList.add('hidden');
+                    player.classList.remove('hidden');
+                    player.play();
+                }, 1000);
+
             } catch (err) {
-                // Fallback for modern browsers (might fail in sandboxed iframes)
-                navigator.clipboard.writeText(cleanText).then(() => {
-                    showMessage(`${item} copied to clipboard!`);
-                }, (err) => {
-                    console.error('Failed to copy text: ', err);
-                    showMessage('Failed to copy. See console for errors.');
-                });
+                // Clear intervals on error
+                if (scriptInterval) clearInterval(scriptInterval);
+                if (audioInterval) clearInterval(audioInterval);
+                
+                progressContainer.classList.add('hidden');
+                console.error(err);
+                alert("Audio generation failed: " + err.message);
             } finally {
-                const textArea = document.querySelector("textarea");
-                if (textArea) {
-                    document.body.removeChild(textArea);
-                }
+                btn.disabled = false;
             }
-        }
+        });
 
-        /**
-         * 8. Utility function to trigger a file download.
-         */
-        function downloadAsFile(filename, blob) {
-            const blobUrl = (blob instanceof Blob) ? URL.createObjectURL(blob) : blob;
-            
-            const a = document.createElement('a');
-            a.href = blobUrl;
-            a.download = filename;
-            document.body.appendChild(a);
-            a.click();
-            
-            // Clean up
-            document.body.removeChild(a);
-            // Don't revoke URL immediately if it's for the player
-            if (filename !== 'audio_lecture.wav') {
-                 URL.revokeObjectURL(blobUrl);
-            }
-        }
-        
-        /**
-         * 9. Utility function to show a custom message.
-         */
-        function showMessage(message) {
-            messageBox.innerText = message;
-            messageBox.classList.add('show');
-            
-            // Hide after 3 seconds
-            setTimeout(() => {
-                messageBox.classList.remove('show');
-            }, 3000);
-        }
-        
-        /**
-         * 10. Utility to convert Base64 to ArrayBuffer (for audio).
-         */
-        function base64ToArrayBuffer(base64) {
-            const binaryString = window.atob(base64);
-            const len = binaryString.length;
-            const bytes = new Uint8Array(len);
-            for (let i = 0; i < len; i++) {
-                bytes[i] = binaryString.charCodeAt(i);
-            }
-            return bytes.buffer;
-        }
-
-        /**
-         * 11. Handles the follow-up question form submission.
-         */
-        async function handleFollowUpSubmit(e) {
+        // FOLLOW UP
+        followUpForm.addEventListener('submit', async (e) => {
             e.preventDefault();
+            const q = el('followUpInput').value;
+            const container = el('followUpResult');
             
-            const followUpQuestion = followUpInput.value;
-            if (!followUpQuestion || !currentSummary) {
-                showMessage("Please enter a follow-up question.");
-                return;
-            }
+            container.innerHTML = '<span class="animate-pulse">Dr. Holtkamp is thinking...</span>';
+            container.classList.remove('hidden');
 
-            // 1. Construct the prompt
-            const followUpPrompt = `
-                You are a medical research assistant. A user has just reviewed a summary on a topic and has a follow-up question.
-                
-                **Original Summary Context:**
-                ${currentSummary}
-                
-                **Original Treatment Plan Context:**
-                ${planContent.innerText} 
-                
-                **User's Follow-up Question:**
-                "${followUpQuestion}"
-                
-                **Instructions:**
-                1.  Answer the user's follow-up question directly and concisely.
-                2.  Base your answer on the provided context and your general medical knowledge.
-                3.  **You MUST use the Google Search tool** to find information that specifically answers the user's follow-up question, even if it's related to the original topic.
-                4.  Format the response as plain text, suitable for displaying in a web-based text area. Do not use any bolding, markdown, or special formatting.
+            const prompt = `
+                Context: ${storedContext}
+                User Question: "${q}"
+                Role: Dr. Holtkamp.
+                Task: Answer the question comparing the trials mentioned above if relevant. Be concise.
             `;
 
-            // 2. Show loader
-            loaderText.innerText = "Researching follow-up question...";
-            loader.style.display = 'block'; // Use the main loader
-            followUpButton.disabled = true;
-            followUpResult.classList.add('hidden'); // Hide old result
-
-            // 3. Call API
             try {
-                const payload = {
-                    "contents": [{ "parts": [{ "text": followUpPrompt }] }],
-                    "tools": [{ "google_search": {} }] // Enable search
-                };
-
-                const apiData = await fetchWithRetry(GENERATE_API_URL, payload);
-                
-                const candidate = apiData.candidates?.[0];
-                if (!candidate || !candidate.content?.parts?.[0]?.text) {
-                    throw new Error("Invalid API response for follow-up question.");
-                }
-
-                const responseText = candidate.content.parts[0].text;
-                
-                // 4. Display result
-                followUpResult.innerText = responseText;
-                followUpResult.classList.remove('hidden');
-                
-                // Re-typeset math if any is present
-                if (window.MathJax) {
-                    window.MathJax.typesetPromise([followUpResult])
-                        .catch((err) => console.log('MathJax Typeset Error: ', err));
-                }
-                
-                followUpInput.value = ""; // Clear input for next question
-
-            } catch (error) {
-                console.error('Error fetching follow-up:', error);
-                followUpResult.innerText = `Error: ${error.message}`;
-                followUpResult.classList.remove('hidden');
-            } finally {
-                // 5. Hide loader
-                loader.style.display = 'none';
-                followUpButton.disabled = false;
+                const data = await fetchAPI(GENERATE_URL, {
+                    contents: [{ parts: [{ text: prompt }] }],
+                    tools: [{ google_search: {} }]
+                });
+                const rawFollowUp = data.candidates[0].content.parts[0].text;
+                container.innerHTML = marked.parse(stripLatex(rawFollowUp));
+            } catch (err) {
+                container.innerText = "Error: " + err.message;
             }
+        });
+
+        // Utilities
+        function showLoader(text) {
+            el('loaderText').innerText = text;
+            el('loader').classList.remove('hidden');
         }
+        function hideLoader() {
+            el('loader').classList.add('hidden');
+        }
+        
+        el('btnCopy').onclick = () => {
+            navigator.clipboard.writeText(storedSummary);
+            alert("Summary copied!");
+        };
+        el('btnPlan').onclick = () => {
+            navigator.clipboard.writeText(el('planContent').innerText);
+            alert("Plan copied!");
+        };
 
     </script>
 </body>
